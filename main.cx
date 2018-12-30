@@ -1,0 +1,344 @@
+package main
+
+// Import core packages
+import "gl"
+import "glfw"
+import "os"
+
+// Import custom packages
+import "graphical"
+
+// Keyboard Keys
+var RIGHT_ARROW_KEY i32 = 262
+var LEFT_ARROW_KEY i32 = 263
+var DOWN_ARROW_KEY i32 = 264
+var UP_ARROW_KEY i32 = 265
+
+var rotate_x f32 = 25.0
+var rotate_y f32 = 0.0
+var rotate_z f32 = 25.0
+var scale f32 = 1.0
+
+// Directions
+var UP i32 = 1
+var DOWN i32 = 3
+var LEFT i32 = 2
+var RIGHT i32 = 0
+
+func initGLFW() {
+	glfw.Init()
+	glfw.WindowHint(glfw.Resizable, glfw.False)
+	glfw.CreateWindow("window", 1200, 800, "PACMAN 3D") // TODO add fullscreen support
+	glfw.MakeContextCurrent("window")
+
+	glfw.SetKeyCallback("window", "keyboardManager")
+	glfw.SetCursorPosCallback("window", "cursor_pos_callback")
+	glfw.SetMouseButtonCallback("window", "mouse_button_callback")
+}
+
+func initGL() (program i32) {
+	gl.Init()
+
+	gl.Enable(gl.DEPTH_TEST)
+	gl.Enable(gl.TEXTURE_2D)
+
+	program = gl.CreateProgram()
+	gl.LinkProgram(program)
+	return program
+}
+
+func keyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
+	if bool.and(i32.eq(key, RIGHT_ARROW_KEY), i32.eq(action, 1)) {
+    movePlayer(RIGHT)
+  }
+  if bool.and(i32.eq(key, LEFT_ARROW_KEY), i32.eq(action, 1)) {
+    movePlayer(LEFT)
+  }
+  if bool.and(i32.eq(key, DOWN_ARROW_KEY), i32.eq(action, 1)) {
+    movePlayer(DOWN)
+  }
+  if bool.and(i32.eq(key, UP_ARROW_KEY), i32.eq(action, 1)) {
+    movePlayer(UP)
+  }
+}
+
+func movePlayer(direction i32) () {
+  if bool.eq(canMove(direction, player.index_y, player.index_x), true) {
+    // Move Up
+    if i32.eq(direction, UP) {
+      player.index_y = i32.sub(player.index_y, 1)
+    }
+    // Move Down
+    if i32.eq(direction, DOWN) {
+      player.index_y = i32.add(player.index_y, 1)
+    }
+    // Move Left
+    if i32.eq(direction, LEFT) {
+      player.index_x = i32.sub(player.index_x, 1)
+    }
+    // Move Right
+    if i32.eq(direction, RIGHT) {
+      player.index_x = i32.add(player.index_x, 1)
+    }
+    // Update the current player direction
+    player.direction = direction
+    // Update the player position
+    player.geometry.position = getPosition3D(player.index_y, player.index_x)
+  }
+}
+
+func canMove(direction i32, line i32, collumn i32) (can_move bool)  {
+  var can_move bool = false
+  if bool.and(i32.eq(direction, UP), bool.not(i32.eq(cells[i32.sub(line, 1)][collumn].ctype, WALL_CELL))) {
+    can_move = true
+  }
+  if bool.and(i32.eq(direction, DOWN), bool.not(i32.eq(cells[i32.add(line, 1)][collumn].ctype, WALL_CELL))) {
+    can_move = true
+  }
+  if bool.and(i32.eq(direction, LEFT), bool.not(i32.eq(cells[line][i32.sub(collumn, 1)].ctype, WALL_CELL))) {
+    can_move = true
+  }
+  if bool.and(i32.eq(direction, RIGHT), bool.not(i32.eq(cells[line][i32.add(collumn, 1)].ctype, WALL_CELL))) {
+    can_move = true
+  }
+  return can_move
+}
+
+var mouse_clicked bool = false
+func mouse_button_callback(window str, key i32, action i32, mods i32) () {
+	if (action == 0) {
+		mouse_clicked = false
+	} else {
+		mouse_clicked = true
+	}
+}
+
+var old_x f64
+func cursor_pos_callback(window str, xpos f64, ypos f64) () {
+	if mouse_clicked {
+		rotate_z = rotate_z + 0.2*f64.f32(xpos - old_x)
+	}
+	old_x = xpos
+}
+
+/* GAME LOGIC */
+
+var x_cells i32 = 28
+var y_cells i32 = 31
+var cells [31][28]Cell
+
+var simple_points []SimplePoint
+var super_points 	[]SuperPoint
+
+func get_board_line(i i32) (line [28]i32) {
+    if i32.eq(i, 1) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 2) {
+      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 3) {
+      line = [28]i32{1,  2,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  2,  1}
+    }
+    if i32.eq(i, 4) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 5) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 6) {
+      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 7) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 8) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 9) {
+      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 10) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  3,  1,  1,  3,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 11) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  3,  1,  1,  3,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 12) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 13) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  5,  5,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 14) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  3,  3,  3,  3,  3,  3,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 15) {
+      line = [28]i32{3,  3,  3,  3,  3,  1,  0,  3,  3,  3,  1,  3,  3,  3,  3,  3,  3,  1,  3,  3,  3,  0,  1,  3,  3,  3,  3,  3}
+    }
+    if i32.eq(i, 16) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  3,  3,  3,  3,  3,  3,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 17) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 18) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 19) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 20) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
+    }
+    if i32.eq(i, 21) {
+      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 22) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 23) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 24) {
+      line = [28]i32{1,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 25) {
+      line = [28]i32{1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1}
+    }
+    if i32.eq(i, 26) {
+      line = [28]i32{1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1}
+    }
+    if i32.eq(i, 27) {
+      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 28) {
+      line = [28]i32{1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1}
+    }
+    if i32.eq(i, 29) {
+      line = [28]i32{1,  2,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  1}
+    }
+    if i32.eq(i, 30) {
+      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
+    }
+    if i32.eq(i, 31) {
+      line = [28]i32{1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1}
+    }
+    return line
+}
+
+// Item Types
+var PATH_CELL i32 = 3
+var WALL_CELL i32 = 1
+var PATH_CELL_WITH_SIMPLE_POINT i32 = 0
+var PATH_CELL_WITH_SUPER_POINT i32 = 2
+var TELEPORT_CELL i32 = 4
+var GATE_CELL i32 = 5
+
+func getPosition3D(line i32, collumn i32) (v graphical.Vector3f) {
+  x := f32.add(-1.0, f32.add(f32.mul(i32.f32(collumn), CELL_WIDTH), f32.div(CELL_WIDTH, 2.0)))
+  y := f32.add(-1.0, f32.add(f32.mul(i32.f32(line), CELL_HEIGHT), f32.div(CELL_HEIGHT, 2.0)))
+	v = graphical.newVector3f(x, y, 0.0)
+  return v
+}
+
+func renderBoard() () {
+	var g graphical.BoxGeometry
+  for i:=0; i<y_cells; i++ {
+    for j:=0; j<x_cells; j++ {
+			if i32.eq(cells[i][j].ctype, 1) {
+				g = cells[i][j].geometry
+				g.render()
+			}
+    }
+  }
+}
+
+func initScene() () {
+  var i i32
+  var j i32
+
+  // Initialize game board items
+  var line [28]i32
+  for i=0; i<y_cells; i++ {
+    line = get_board_line(i32.add(i, 1))
+    for j=0; j<x_cells; j++ {
+      initializeItem(i, j, line[j])
+    }
+  }
+}
+
+func initializeItem(line i32, col i32, item_type i32) () {
+  if i32.eq(item_type, WALL_CELL) {
+    cells[line][col] = newCell(line, col, WALL_CELL)
+  }
+	/*
+  if i32.eq(item_type, PATH_CELL) {
+    cells[line][col] = newCell(line, col, PATH_CELL)
+  }*/
+  if i32.eq(item_type, PATH_CELL_WITH_SIMPLE_POINT) {
+		simple_points = append(simple_points, newSimplePoint(line, col))
+  }
+  if i32.eq(item_type, PATH_CELL_WITH_SUPER_POINT) {
+		super_points = append(super_points, newSuperPoint(line, col))
+  }
+	/*
+  if i32.eq(item_type, TELEPORT_CELL) { // FIX ME merge multiple cases together
+    cells[line][col] = newCell(line, col, TELEPORT_CELL)
+  }
+  if i32.eq(item_type, GATE_CELL) {
+    cells[line][col] = newCell(line, col, GATE_CELL)
+  }*/
+}
+
+var player Player
+
+func main () () {
+	initGLFW()
+	var program i32
+	program = initGL()
+
+	player = newPlayer(23, 13)
+
+	// Initializes all game objects
+  initScene()
+
+	var time f64
+	for bool.not(glfw.ShouldClose("window")) {
+		time = glfw.GetTime()
+		player = player.update(time)
+		for i:=0; i<len(simple_points); i++ {
+			simple_points[i] = simple_points[i].update(player.index_x, player.index_y, time)
+		}
+		for i=0; i<len(super_points); i++ {
+			super_points[i] = super_points[i].update(player.index_x, player.index_y, time)
+		}
+
+		gl.Clear(i32.bitor(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT))
+		gl.LoadIdentity()
+
+		var ratio f64
+		ratio = f64.div(1200.0D, 800.0D)
+		gl.Ortho(-1.0D*ratio, 1.0D*ratio, 1.0D, -1.0D, -2.0D, 2.0D)
+
+		// Scales and rotates the scene
+		gl.Scalef(scale, scale, scale);
+		gl.Rotatef( rotate_x, 1.0, 0.0, 0.0 );
+		gl.Rotatef( rotate_y, 0.0, 1.0, 0.0 );
+		gl.Rotatef( rotate_z, 0.0, 0.0, 1.0 );
+
+		gl.UseProgram(program)
+
+		renderBoard()
+		player.render()
+		for i:=0; i<len(simple_points); i++ {
+			simple_points[i].render()
+		}
+		for i=0; i<len(super_points); i++ {
+			super_points[i].render()
+		}
+
+		glfw.PollEvents()
+		glfw.SwapBuffers("window")
+	}
+}

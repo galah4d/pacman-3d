@@ -1,0 +1,100 @@
+package main
+
+import "gl"
+import "glfw"
+
+import "graphical"
+
+/* Constant declaration */
+
+// Point cell types Types
+var PATH_CELL_WITH_SIMPLE_POINT i32 = 0
+var PATH_CELL_WITH_SUPER_POINT i32 = 2
+
+type Point struct {
+  index_x i32
+  index_y i32
+  active bool
+  last_update f64
+}
+
+func newPoint (line i32, collumn i32) (point Point) {
+  point = Point {
+    index_x: collumn,
+    index_y: line,
+    active: true,
+    last_update: 0.0D}
+  return point
+}
+
+func (point Point) update (player_x i32, player_y i32, time f64) (point Point) {
+  if bool.and(i32.eq(player_x, point.index_x), i32.eq(player_y, point.index_y)) {
+    point.active = false
+  }
+  point.last_update = time
+}
+
+type SimplePoint struct {
+  point Point
+  geometry graphical.BoxGeometry
+}
+
+func newSimplePoint(line i32, collumn i32) (point SimplePoint) {
+  var mat graphical.Material
+  mat = graphical.newMaterial(1.0, 1.0, 1.0)
+  mat = mat.setTexture(gl.NewTexture("textures/points/simple-point-texture.jpg"))
+
+  point = SimplePoint {
+    point: newPoint(line, collumn),
+    geometry: graphical.newBoxGeometry(0.01, 0.01, 0.01, mat)}
+  point.geometry.position = getPosition3D(line, collumn)
+  point.geometry.rotation = graphical.newVector3f(0.0, 0.0, 0.0)
+
+  return point
+}
+
+func (point SimplePoint) update (player_x i32, player_y i32, time f64) (point SimplePoint) {
+  //point.geometry.rotation.z = point.geometry.rotation.z + f64.f32(f64.mul(f64.sub(time, point.point.last_update), 20.0D))
+  point.point = point.point.update(player_x, player_y, time)
+  return point
+}
+
+func (point SimplePoint) render () {
+  var bg graphical.BoxGeometry
+  bg = point.geometry
+  if point.point.active {
+    bg.render()
+  }
+}
+
+type SuperPoint struct {
+  point Point
+  geometry graphical.CylinderGeometry
+}
+
+func newSuperPoint(line i32, collumn i32) (point SuperPoint) {
+  var mat graphical.Material
+  mat = graphical.newMaterial(1.0, 1.0, 1.0)
+  mat = mat.setTexture(gl.NewTexture("textures/points/super-point-texture.jpg"))
+
+  point = SuperPoint {
+    point: newPoint(line, collumn),
+    geometry: graphical.newCylinderGeometry(0.03, 0.02, 10, mat)}
+  point.geometry.position = getPosition3D(line, collumn)
+  point.geometry.rotation = graphical.newVector3f(90.0, 0.0, 0.0)
+
+  return point
+}
+
+func (point SuperPoint) update (player_x i32, player_y i32, time f64) (point SuperPoint) {
+  point.point = point.point.update(player_x, player_y, time)
+  return point
+}
+
+func (point SuperPoint) render () {
+  var cg graphical.CylinderGeometry
+  cg = point.geometry
+  if point.point.active {
+    cg.render()
+  }
+}

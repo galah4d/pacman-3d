@@ -1,0 +1,163 @@
+package main
+
+import "gl"
+import "glfw"
+
+// Keyboard Keys
+var RIGHT_ARROW_KEY i32 = 262
+var LEFT_ARROW_KEY i32 = 263
+var DOWN_ARROW_KEY i32 = 264
+var UP_ARROW_KEY i32 = 265
+
+var rotate_x f32 = -15.0
+var rotate_y f32 = -15.0
+
+func initGLFW() {
+	glfw.Init()
+	glfw.CreateWindow("window", 1000, 1000, "CUBE 3D")
+	glfw.MakeContextCurrent("window")
+
+	glfw.SetKeyCallback("window", "keyboardManager")
+}
+
+func initGL() (program i32) {
+	gl.Init()
+	gl.Enable(gl.BLEND)
+	gl.Enable(gl.DEPTH_TEST)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	program = gl.CreateProgram()
+	gl.LinkProgram(program)
+	return program
+}
+
+type Vector3f struct {
+	x f32
+	y f32
+	z f32
+}
+
+func newVector3f(_x f32, _y f32, _z f32) (v Vector3f) {
+	v = Vector3f{
+		x: _x,
+		y: _y,
+		z: _z}
+	return v
+}
+
+type BoxGeometry struct {
+	position Vector3f
+	dimensions Vector3f
+}
+
+func newBoxGeometry(width f32, heigth f32, depth f32) (bg BoxGeometry) {
+	bg = BoxGeometry{
+		position:newVector3f(0.0, 0.0, 0.0),
+		dimensions:newVector3f(width, heigth, depth)}
+	return bg
+}
+
+func (bg BoxGeometry) render () {
+	x1 := f32.sub(bg.position.x, f32.div(bg.dimensions.x, 2.0))
+	x2 := f32.add(bg.position.x, f32.div(bg.dimensions.x, 2.0))
+
+	y1 := f32.sub(bg.position.y, f32.div(bg.dimensions.y, 2.0))
+	y2 := f32.add(bg.position.y, f32.div(bg.dimensions.y, 2.0))
+
+	z1 := f32.sub(bg.position.z, f32.div(bg.dimensions.z, 2.0))
+	z2 := f32.add(bg.position.z, f32.div(bg.dimensions.z, 2.0))
+
+	//Yellow side - FRONT
+	gl.Begin(gl.POLYGON);
+	gl.Color3f( 1.0, 1.0, 0.0 );
+	gl.Vertex3f(  x2, y1, z1 );
+	gl.Vertex3f(  x2, y2, z1 );
+	gl.Vertex3f( x1,  y2, z1 );
+	gl.Vertex3f( x1, y1, z1 );
+	gl.End()
+
+	// White side - BACK
+	gl.Begin(gl.POLYGON);
+	gl.Color3f(   1.0,  1.0, 1.0 );
+	gl.Vertex3f(  x2, y1, z2 );
+	gl.Vertex3f(  x2, y2, z2 );
+	gl.Vertex3f( x1, y2, z2 );
+	gl.Vertex3f( x1, y1, z2 );
+	gl.End();
+
+	// Purple side - RIGHT
+	gl.Begin(gl.POLYGON);
+	gl.Color3f(  1.0,  0.0,  1.0 );
+	gl.Vertex3f( x2, y1, z1 );
+	gl.Vertex3f( x2, y2, z1 );
+	gl.Vertex3f( x2, y2, z2 );
+	gl.Vertex3f( x2, y1, z2 );
+	gl.End();
+
+	// Green Side - LEFT
+	gl.Begin(gl.POLYGON);
+	gl.Color3f(   0.0,  1.0,  0.0 );
+	gl.Vertex3f( x1, y1, z2 );
+	gl.Vertex3f( x1, y2, z2 );
+	gl.Vertex3f( x1, y2, z1 );
+	gl.Vertex3f( x1, y1, z1 );
+	gl.End();
+
+	// Blue side - TOP
+	gl.Begin(gl.POLYGON);
+	gl.Color3f(  0.0,  0.0,  1.0 );
+	gl.Vertex3f( x2,  y2, z2 );
+	gl.Vertex3f( x2,  y2, z1 );
+	gl.Vertex3f( x1,  y2, z1 );
+	gl.Vertex3f( x1,  y2, z2 );
+	gl.End();
+
+	// Red side - BASE
+	gl.Begin(gl.POLYGON);
+	gl.Color3f(   1.0,  0.0,  0.0 );
+	gl.Vertex3f(  x2, y1, z1 );
+	gl.Vertex3f(  x2, y1, z2 );
+	gl.Vertex3f( x1, y1, z2 );
+	gl.Vertex3f( x1, y1, z1 );
+	gl.End();
+}
+
+func keyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
+	if i32.eq(key, RIGHT_ARROW_KEY) {
+		rotate_y = rotate_y - 3.0
+	}
+	if i32.eq(key, LEFT_ARROW_KEY) {
+		rotate_y = rotate_y + 3.0
+	}
+	if i32.eq(key, DOWN_ARROW_KEY) {
+		rotate_x = rotate_x - 3.0
+	}
+	if i32.eq(key, UP_ARROW_KEY) {
+		rotate_x = rotate_x + 3.0
+	}
+}
+
+func main () () {
+	initGLFW()
+
+	var program i32
+	program = initGL()
+
+	var bg1 BoxGeometry
+	bg1 = newBoxGeometry(1.0, 1.0, 1.0)
+
+	for bool.not(glfw.ShouldClose("window")) {
+		gl.Clear(i32.bitor(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT))
+		gl.LoadIdentity();
+
+		gl.Rotatef( rotate_x, 1.0, 0.0, 0.0 );
+		gl.Rotatef( rotate_y, 0.0, 1.0, 0.0 );
+
+		gl.UseProgram(program)
+
+		bg1.render()
+
+		glfw.PollEvents()
+		glfw.SwapBuffers("window")
+	}
+}

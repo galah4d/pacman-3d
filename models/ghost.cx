@@ -1,0 +1,68 @@
+package main
+
+import "gl"
+import "glfw"
+
+import "graphical"
+
+/* Constant declaration */
+var GHOST_RADIUS f32 = 0.2
+
+// Ghost Types
+var GHOST_TYPE_SHADOW  i32 = 0
+var GHOST_TYPE_SPEEDY  i32 = 1
+var GHOST_TYPE_BASHFUL i32 = 2
+var GHOST_TYPE_POKEY   i32 = 3
+
+type Ghost struct {
+  index_x i32
+  index_y i32
+  direction i32
+  gtype i32
+
+  head_geometry graphical.SphereGeometry
+  body_geometry graphical.CylinderGeometry
+}
+
+func newGhost (line i32, collumn i32, gtype i32) (ghost Ghost) {
+  ghost = Ghost{
+    index_x: collumn,
+    index_y: line,
+    direction: 1, // TODO add direction constants
+    gtype: gtype}
+
+  var mat graphical.Material
+  if ghost.gtype == GHOST_TYPE_SHADOW {
+    mat = graphical.newMaterial(1.0, 0.0, 0.0) // Red color
+    mat = mat.setTexture(gl.NewTexture("../textures/ghost.jpg"))
+
+  } else if ghost.gtype == GHOST_TYPE_SPEEDY {
+    mat = graphical.newMaterial(1.0, 0.5, 1.0) // Pink color
+
+  } else if ghost.gtype == GHOST_TYPE_BASHFUL {
+    mat = graphical.newMaterial(0.0, 1.0, 1.0) // Cyan color
+
+  } else if ghost.gtype == GHOST_TYPE_POKEY {
+    mat = graphical.newMaterial(1.0, 0.5, 0.25) // Orange color
+  }
+  ghost.head_geometry = graphical.newSphereGeometry(GHOST_RADIUS, 20, mat)
+  ghost.body_geometry = graphical.newCylinderGeometry(GHOST_RADIUS, GHOST_RADIUS, mat)
+
+  var position graphical.Vector3f
+  position = graphical.newVector3f(0.0, 0.0, 0.0)
+  ghost.head_geometry.position.y = f32.add(position.y, GHOST_RADIUS)
+  ghost.body_geometry.position.y = f32.sub(position.y, GHOST_RADIUS)
+
+  return ghost
+}
+
+func (ghost Ghost) render () {
+  var hg graphical.SphereGeometry
+  hg = ghost.head_geometry
+
+  var bg graphical.CylinderGeometry
+  bg = ghost.body_geometry
+
+  hg.render()
+  //bg.render()
+}

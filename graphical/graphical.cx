@@ -1,0 +1,37 @@
+package graphical
+
+type Vector3f struct {
+	x f32
+	y f32
+	z f32
+}
+
+func newVector3f(_x f32, _y f32, _z f32) (v Vector3f) {
+	v = Vector3f{
+		x: _x,
+		y: _y,
+		z: _z}
+	return v
+}
+
+type Material struct {
+	color Vector3f
+	textured bool
+	texture i32
+}
+
+func newMaterial(red f32, green f32, blue f32) (mat Material) {
+	mat = Material{color: newVector3f(red, green, blue), textured: false}
+	return mat
+}
+
+func (material Material) setTexture(texture i32) (material Material) {
+	material.textured = true
+	material.texture = texture
+	return material
+}
+
+func convert_p(value f32, radius f32) (c f64) {
+  c = f32.f64((value-(-1.0*radius))/(2.0*radius))
+  return c
+}

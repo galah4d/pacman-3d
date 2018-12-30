@@ -1,0 +1,110 @@
+package main
+
+import "gl"
+import "glfw"
+
+import "graphical"
+
+// Keyboard Keys
+var DOWN_ARROW_KEY i32 = 264
+var UP_ARROW_KEY i32 = 265
+
+var rotate_x f32 = -20.0
+var rotate_y f32 = 0.0
+var rotate_z f32 = 0.0
+var scale f32 = 1.0
+
+func initGLFW() {
+	glfw.Init()
+	glfw.WindowHint(glfw.Resizable, glfw.False)
+	glfw.CreateWindow("window", 1200, 800, "PACMAN 3D")
+	glfw.MakeContextCurrent("window")
+
+	glfw.SetKeyCallback("window", "keyboardManager")
+	glfw.SetCursorPosCallback("window", "cursor_pos_callback")
+	glfw.SetMouseButtonCallback("window", "mouse_button_callback")
+}
+
+func initGL() (program i32) {
+	gl.Init()
+
+	gl.Enable(gl.DEPTH_TEST)
+	gl.Enable(gl.TEXTURE_2D)
+
+	program = gl.CreateProgram()
+	gl.LinkProgram(program)
+	return program
+}
+
+func keyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
+	if i32.eq(key, DOWN_ARROW_KEY) && scale > 0.01 {
+		scale = scale - 0.01
+	}
+	if i32.eq(key, UP_ARROW_KEY) && scale < 3.0 {
+		scale = scale + 0.01
+	}
+}
+
+var mouse_clicked bool = false
+func mouse_button_callback(window str, key i32, action i32, mods i32) () {
+	if (action == 0) {
+		mouse_clicked = false
+	} else {
+		mouse_clicked = true
+	}
+}
+
+var old_x f64
+func cursor_pos_callback(window str, xpos f64, ypos f64) () {
+	if mouse_clicked {
+		rotate_y = rotate_y + 0.2*f64.f32(xpos - old_x)
+	}
+	old_x = xpos
+}
+
+func main () () {
+	initGLFW()
+
+	var program i32
+	program = initGL()
+
+	var mats [6]graphical.Material
+	var mat graphical.Material
+	mat = graphical.newMaterial(1.0, 0.0, 0.0)
+	mat = mat.setTexture(gl.NewTexture("../textures/points/super-point-texture.jpg"))
+	for i:=0; i<6; i++ {
+		mats[i] = mat
+	}
+
+	var cg graphical.CylinderGeometry
+	cg = graphical.newCylinderGeometry(0.5, 0.5, 20, mat)
+	//cg.position.x = 0.5
+	//cg.rotation = graphical.newVector3f(0.0, 45.0, 0.0)
+	//sg.theta_length = 0.2
+
+	for bool.not(glfw.ShouldClose("window")) {
+		gl.Clear(i32.bitor(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT))
+		gl.LoadIdentity()
+
+		var ratio f64
+		ratio = f64.div(1200.0D, 800.0D)
+		gl.Ortho(-1.0D*ratio, 1.0D*ratio, 1.0D, -1.0D, -1.0D, 20.0D)
+
+		gl.UseProgram(program)
+
+		/*if mouse_clicked == false {
+			rotate_y = rotate_y + 2.0
+		}*/
+
+		// Scales and rotates the scene
+		gl.Scalef(scale, scale, scale);
+		gl.Rotatef( rotate_x, 1.0, 0.0, 0.0 );
+		gl.Rotatef( rotate_y, 0.0, 1.0, 0.0 );
+		gl.Rotatef( rotate_z, 0.0, 0.0, 1.0 );
+
+		cg.render()
+
+		glfw.PollEvents()
+		glfw.SwapBuffers("window")
+	}
+}

@@ -1,0 +1,48 @@
+package main
+
+import "graphical"
+
+var CELL_WIDTH f32 = 0.07
+var CELL_HEIGHT f32 = 0.07
+var CELL_DEPTH f32 = 0.07
+
+type Cell struct {
+  index_x i32
+  index_y i32
+  ctype i32
+	geometry graphical.BoxGeometry
+}
+
+func newCell (line i32, collumn i32, ct i32) (cell Cell) {
+  var materials [6]graphical.Material
+  var mat graphical.Material
+
+  mat = graphical.newMaterial(1.0, 1.0, 0.0)
+  mat = mat.setTexture(gl.NewTexture("textures/walls/wall.jpg"))
+  for i:=0; i<2; i++ {
+    materials[i] = mat
+  }
+
+  mat = graphical.newMaterial(1.0, 1.0, 0.0)
+  mat = mat.setTexture(gl.NewTexture("textures/walls/wall2.jpg"))
+  for i=2; i<4; i++ {
+    materials[i] = mat
+  }
+
+  mat = graphical.newMaterial(1.0, 1.0, 0.0)
+  mat = mat.setTexture(gl.NewTexture("textures/walls/wall3.jpg"))
+  for i=4; i<6; i++ {
+    materials[i] = mat
+  }
+
+  cell = Cell{
+    index_x: collumn,
+    index_y: line,
+    ctype: ct,
+		geometry: graphical.newBoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH, materials)}
+	cell.geometry.position = getPosition3D(line, collumn)
+  /*f32.print(cell.geometry.position.x)
+  f32.print(cell.geometry.position.y)
+  str.print("-----")*/
+	return cell
+}

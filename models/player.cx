@@ -1,0 +1,67 @@
+package main
+
+import "gl"
+import "glfw"
+
+import "graphical"
+
+/* Constant declaration */
+var PLAYER_RADIUS f32 = 0.025
+var PLAYER_TIMER f64 = 0.25D
+
+type Player struct {
+  index_x i32
+  index_y i32
+  direction i32
+
+  geometry graphical.SphereGeometry
+  materials [2]graphical.Material
+  current_material i32
+
+  last_update f64
+}
+
+func newPlayer (line i32, collumn i32) (pl Player) {
+  var materials [2]graphical.Material
+  materials[0] = graphical.newMaterial(1.0, 1.0, 0.0)
+  materials[0] = materials[0].setTexture(gl.NewTexture("textures/player/pacman.jpg"))
+  materials[1] = graphical.newMaterial(1.0, 1.0, 0.0)
+  materials[1] = materials[1].setTexture(gl.NewTexture("textures/player/pacman2.jpg"))
+
+  pl = Player{
+    index_x: collumn,
+    index_y: line,
+    direction: RIGHT, // TODO add direction constants
+    geometry: graphical.newSphereGeometry(PLAYER_RADIUS, 10, materials[0]),
+    materials: materials,
+    current_material: 0,
+    last_update: 0.0D}
+
+  pl.geometry.position = getPosition3D(line, collumn)
+  pl.geometry.rotation.x = -90.0
+  return pl
+}
+
+func (player Player) update (time f64) (player Player) {
+  // Animates the player material
+  if PLAYER_TIMER <= f64.sub(time, player.last_update) {
+    if player.current_material == 0 {
+      player.geometry.material = player.materials[1]
+      player.current_material = 1
+    } else {
+      player.geometry.material = player.materials[0]
+      player.current_material = 0
+    }
+    player.last_update = time
+  }
+
+  // Rotates the player
+  player.geometry.rotation.y = i32.f32(player.direction)*(90.0)
+  return player
+}
+
+func (player Player) render () {
+  var sg graphical.SphereGeometry
+  sg = player.geometry
+  sg.render()
+}
