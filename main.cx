@@ -32,8 +32,8 @@ func initGLFW() {
 	glfw.MakeContextCurrent("window")
 
 	glfw.SetKeyCallback("window", "keyboardManager")
-	glfw.SetCursorPosCallback("window", "cursor_pos_callback")
-	glfw.SetMouseButtonCallback("window", "mouse_button_callback")
+	//glfw.SetCursorPosCallback("window", "cursor_pos_callback")
+	//glfw.SetMouseButtonCallback("window", "mouse_button_callback")
 }
 
 func initGL() (program i32) {
