@@ -11,6 +11,12 @@ import "graphical"
 var PATH_CELL_WITH_SIMPLE_POINT i32 = 0
 var PATH_CELL_WITH_SUPER_POINT i32 = 2
 
+var point_textures [2]i32
+func loadPointTetures () {
+  point_textures[0] = gl.NewTexture("textures/points/simple-point-texture.jpg")
+  point_textures[1] = gl.NewTexture("textures/points/super-point-texture.jpg")
+}
+
 type Point struct {
   index_x i32
   index_y i32
@@ -42,7 +48,7 @@ type SimplePoint struct {
 func newSimplePoint(line i32, collumn i32) (point SimplePoint) {
   var mat graphical.Material
   mat = graphical.newMaterial(1.0, 1.0, 1.0)
-  mat = mat.setTexture(gl.NewTexture("textures/points/simple-point-texture.jpg"))
+  mat = mat.setTexture(point_textures[0])
 
   point = SimplePoint {
     point: newPoint(line, collumn),
@@ -75,7 +81,7 @@ type SuperPoint struct {
 func newSuperPoint(line i32, collumn i32) (point SuperPoint) {
   var mat graphical.Material
   mat = graphical.newMaterial(1.0, 1.0, 1.0)
-  mat = mat.setTexture(gl.NewTexture("textures/points/super-point-texture.jpg"))
+  mat = mat.setTexture(point_textures[1])
 
   point = SuperPoint {
     point: newPoint(line, collumn),

@@ -8,6 +8,14 @@ import "graphical"
 /* Constant declaration */
 var PLAYER_RADIUS f32 = 0.025
 var PLAYER_TIMER f64 = 0.25D
+var PLAYER_MOVEMENT_TIMER f64 = 0.001D
+
+var player_textures[2] i32
+
+func loadPlayerTextures () {
+  player_textures[0] = gl.NewTexture("textures/player/pacman.jpg")
+  player_textures[1] = gl.NewTexture("textures/player/pacman2.jpg")
+}
 
 type Player struct {
   index_x i32
@@ -19,14 +27,15 @@ type Player struct {
   current_material i32
 
   last_update f64
+  movement_timer f64
 }
 
 func newPlayer (line i32, collumn i32) (pl Player) {
   var materials [2]graphical.Material
   materials[0] = graphical.newMaterial(1.0, 1.0, 0.0)
-  materials[0] = materials[0].setTexture(gl.NewTexture("textures/player/pacman.jpg"))
+  materials[0] = materials[0].setTexture(player_textures[0])
   materials[1] = graphical.newMaterial(1.0, 1.0, 0.0)
-  materials[1] = materials[1].setTexture(gl.NewTexture("textures/player/pacman2.jpg"))
+  materials[1] = materials[1].setTexture(player_textures[1])
 
   pl = Player{
     index_x: collumn,
@@ -35,7 +44,8 @@ func newPlayer (line i32, collumn i32) (pl Player) {
     geometry: graphical.newSphereGeometry(PLAYER_RADIUS, 10, materials[0]),
     materials: materials,
     current_material: 0,
-    last_update: 0.0D}
+    last_update: 0.0D,
+    movement_timer: 0.0D}
 
   pl.geometry.position = getPosition3D(line, collumn)
   pl.geometry.rotation.x = -90.0
@@ -55,13 +65,129 @@ func (player Player) update (time f64) (player Player) {
     player.last_update = time
   }
 
+  // Moves the player
+  if PLAYER_MOVEMENT_TIMER <= f64.sub(time, player.movement_timer) {
+    if bool.eq(canMove(player.direction, player.index_y, player.index_x), true) {
+      player = player.move()
+      player.movement_timer = time
+    }
+  }
+
   // Rotates the player
   player.geometry.rotation.y = i32.f32(player.direction)*(90.0)
   return player
+}
+
+func (player Player) move () (player Player) { // TOFIX buggy
+  var nextCellPosition Vector3f
+
+  if i32.eq(player.direction, UP) {
+    player.geometry.position.y = player.geometry.position.y - 0.01
+    nextCellPosition = getPosition3D(i32.sub(player.index_y, 1), player.index_x)
+    if ((player.geometry.position.y > f32.sub(nextCellPosition.y, 0.005)) && (player.geometry.position.y < f32.add(nextCellPosition.y, 0.005))) {
+        player.index_y = i32.sub(player.index_y, 1)
+        player.geometry.position = nextCellPosition
+    }
+  }
+  if i32.eq(player.direction, DOWN) {
+    player.geometry.position.y = player.geometry.position.y + 0.01
+    nextCellPosition = getPosition3D(i32.add(player.index_y, 1), player.index_x)
+    if ((player.geometry.position.y > f32.sub(nextCellPosition.y, 0.005)) && (player.geometry.position.y < f32.add(nextCellPosition.y, 0.005))) {
+        player.index_y = i32.add(player.index_y, 1)
+        player.geometry.position = nextCellPosition
+    }
+  }
+  if i32.eq(player.direction, LEFT) {
+    player.geometry.position.x = player.geometry.position.x - 0.01
+    nextCellPosition = getPosition3D(player.index_y, i32.sub(player.index_x, 1))
+    if ((player.geometry.position.x > f32.sub(nextCellPosition.x, 0.005)) && (player.geometry.position.x < f32.add(nextCellPosition.x, 0.005))) {
+        player.index_x = i32.sub(player.index_x, 1)
+        player.geometry.position = nextCellPosition
+    }
+  }
+  if i32.eq(player.direction, RIGHT) {
+    player.geometry.position.x = player.geometry.position.x + 0.01
+    nextCellPosition = getPosition3D(player.index_y, i32.add(player.index_x, 1))
+    if ((player.geometry.position.x > f32.sub(nextCellPosition.x, 0.005)) && (player.geometry.position.x < f32.add(nextCellPosition.x, 0.005))) {
+        player.index_x = i32.add(player.index_x, 1)
+        player.geometry.position = nextCellPosition
+    }
+  }
+  return player
+}
+/*
+func (player Player) move () (player Player) { // TOFIX buggy
+  var nextCellPosition Vector3f
+
+  if i32.eq(player.direction, UP) {
+    if player.insideCell(cells[player.index_x][i32.sub(player.index_y, 1)]) {
+      player.index_y = i32.sub(player.index_y, 1)
+      player.geometry.position.y = cells[player.index_x][player.index_y].geometry.position.y
+    } else {
+      player.geometry.position.y = player.geometry.position.y - 0.01
+    }
+  }
+  if i32.eq(player.direction, DOWN) {
+    if player.insideCell(cells[player.index_x][i32.add(player.index_y, 1)]) {
+      player.index_y = i32.add(player.index_y, 1)
+      player.geometry.position.y = cells[player.index_x][player.index_y].geometry.position.y
+    } else {
+      player.geometry.position.y = player.geometry.position.y + 0.01
+    }
+  }
+  if i32.eq(player.direction, LEFT) {
+    player.geometry.position.x = player.geometry.position.x - 0.01
+    nextCellPosition = getPosition3D(player.index_y, i32.sub(player.index_x, 1))
+    if ((player.geometry.position.x > f32.sub(nextCellPosition.x, 0.005)) && (player.geometry.position.x < f32.add(nextCellPosition.x, 0.005))) {
+        player.index_x = i32.sub(player.index_x, 1)
+        player.geometry.position = nextCellPosition
+    }
+  }
+  if i32.eq(player.direction, RIGHT) {
+    player.geometry.position.x = player.geometry.position.x + 0.01
+    nextCellPosition = getPosition3D(player.index_y, i32.add(player.index_x, 1))
+    if ((player.geometry.position.x > f32.sub(nextCellPosition.x, 0.005)) && (player.geometry.position.x < f32.add(nextCellPosition.x, 0.005))) {
+        player.index_x = i32.add(player.index_x, 1)
+        player.geometry.position = nextCellPosition
+    }
+  }
+  return player
+}*/
+
+func (player Player) insideCell(cell Cell) (inside bool) {
+  margin_x := f32.div(cell.geometry.dimensions.x, 10.0)
+  cell_min_x := f32.sub(cell.geometry.position.x, margin_x)
+  cell_max_x := f32.add(cell.geometry.position.x, margin_x)
+
+  margin_y := f32.div(cell.geometry.dimensions.y, 10.0)
+  cell_min_y := f32.sub(cell.geometry.position.y, margin_y)
+  cell_max_y := f32.add(cell.geometry.position.y, margin_y)
+  str.print("Position X:")
+  f32.print(cell_min_x)
+  f32.print(player.geometry.position.x)
+  f32.print(cell_max_x)
+  str.print("Position Y:")
+  f32.print(cell_min_y)
+  f32.print(player.geometry.position.y)
+  f32.print(cell_max_y)
+
+
+  inside_x := inRange(player.geometry.position.x, cell_min_x, cell_max_x)
+  inside_y := inRange(player.geometry.position.y, cell_min_y, cell_max_y)
+  inside = bool.and(inside_x, inside_y)
+  bool.print(inside_x)
+  bool.print(inside_y)
+  bool.print(inside)
+  str.print("-----")
 }
 
 func (player Player) render () {
   var sg graphical.SphereGeometry
   sg = player.geometry
   sg.render()
+}
+
+// TODO move to aux.cx
+func inRange(value f32, min f32, max f32) (in_range bool) {
+  in_range = bool.and(f32.gteq(value, min), f32.lteq(value, max))
 }
