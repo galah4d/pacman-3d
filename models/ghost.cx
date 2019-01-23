@@ -35,7 +35,10 @@ var POKEY_SCATTER_COLLUMN i32 = 1
 var GHOST_TEXTURES [4] i32
 
 var GHOST_MOVEMENT_TIMER f64 = 1.0D
-var GHOST_RELEASE_TIMER f64 = 5.0D
+//var GHOST_RELEASE_TIMER f64 = 5.0D
+var GHOST_FRIGHTENED_TIMER f64 = 10.0D
+
+var GHOST_RELEASE_TIMER [4]f64 = [4]f64{5.0D, 10.0D, 15.0D, 20.0D}
 
 type Ghost struct {
   index_x i32
@@ -49,6 +52,7 @@ type Ghost struct {
 
   movement_timer f64
   release_timer f64
+  frightened_timer f64
 }
 
 func newGhost (line i32, collumn i32, gtype i32) (ghost Ghost) {
@@ -58,7 +62,8 @@ func newGhost (line i32, collumn i32, gtype i32) (ghost Ghost) {
     gtype: gtype,
     mode: GHOST_MODE_IN_HOUSE,
     movement_timer: 0.0D,
-    release_timer: 0.0D}
+    release_timer: GHOST_RELEASE_TIMER[gtype],
+    frightened_timer: 0.0D}
 
   var mat graphical.Material
   mat = graphical.newMaterial(1.0, 0.0, 0.0) // Red color
@@ -74,13 +79,20 @@ func newGhost (line i32, collumn i32, gtype i32) (ghost Ghost) {
 }
 
 func (ghost Ghost) update (time f64) (ghost Ghost) {
+  if ghost.mode == GHOST_MODE_FRIGHTENED {
+    if GHOST_FRIGHTENED_TIMER <= f64.sub(time, ghost.frightened_timer) {
+      ghost.mode = GHOST_MODE_CHASE
+    }
+  }
+
+  // Incarcerates the ghost
   if bool.and(i32.eq(ghost.index_x, player.index_x), i32.eq(ghost.index_y, player.index_y)) {
     ghost = ghost.incarcerate()
     ghost.release_timer = time
   }
 
   // Releases the ghost
-  if GHOST_RELEASE_TIMER <= f64.sub(time, ghost.release_timer) {
+  if GHOST_RELEASE_TIMER[0] <= f64.sub(time, ghost.release_timer) {
     if ghost.mode == GHOST_MODE_IN_HOUSE {
       ghost = ghost.release()
     }
@@ -104,6 +116,11 @@ func (ghost Ghost) incarcerate () (ghost Ghost) {
   ghost.index_x = 14
   ghost.index_y = 13
   ghost.mode = GHOST_MODE_IN_HOUSE
+}
+
+func (ghost Ghost) frighten () (ghost Ghost) {
+  ghost.mode = GHOST_MODE_FRIGHTENED
+  //ghost.head_geometry.material = graphical
 }
 
 func (ghost Ghost) move () (ghost Ghost) {

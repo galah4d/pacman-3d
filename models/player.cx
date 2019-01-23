@@ -115,6 +115,7 @@ func (player Player) move () (player Player) { // TOFIX buggy
   }
   return player
 }
+
 /*
 func (player Player) move () (player Player) { // TOFIX buggy
   var nextCellPosition Vector3f

@@ -7,6 +7,11 @@ import "os"
 
 // Import custom packages
 import "graphical"
+import "image_pkg"
+import "button_pkg"
+import "textbox_pkg"
+import "layer_pkg"
+import "screen_pkg"
 
 // Keyboard Keys
 var RIGHT_ARROW_KEY i32 = 262
@@ -17,7 +22,7 @@ var UP_ARROW_KEY i32 = 265
 var rotate_x f32 = 25.0
 var rotate_y f32 = 0.0
 var rotate_z f32 = 25.0
-var scale f32 = 2.0
+var scale f32 = 1.5
 
 // Directions
 var UP i32 = 1
@@ -25,20 +30,32 @@ var DOWN i32 = 3
 var LEFT i32 = 2
 var RIGHT i32 = 0
 
+// Screens
+var SCREEN_WIDTH i32 = 1200
+var SCREEN_HEIGHT i32 = 800
+
+var current_screen i32 = 0
+var screens [3]screen_pkg.Screen
+var screen screen_pkg.Screen
+
 func initGLFW() {
 	glfw.Init()
 	glfw.WindowHint(glfw.Resizable, glfw.False)
-	glfw.CreateWindow("window", 1200, 800, "PACMAN 3D") // TODO add fullscreen support
+	glfw.WindowHint(glfw.ContextVersionMajor, 2)
+  glfw.WindowHint(glfw.ContextVersionMinor, 1)
+
+	glfw.CreateWindow("window", SCREEN_WIDTH, SCREEN_HEIGHT, "PACMAN 3D") // TODO add fullscreen support
 	glfw.MakeContextCurrent("window")
 
 	glfw.SetKeyCallback("window", "keyboardManager")
 	//glfw.SetCursorPosCallback("window", "cursor_pos_callback")
-	//glfw.SetMouseButtonCallback("window", "mouse_button_callback")
+	glfw.SetMouseButtonCallback("window", "mouse_button_callback")
 }
 
 func initGL() (program i32) {
 	gl.Init()
-
+	gl.Enable(gl.BLEND)
+  gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Enable(gl.TEXTURE_2D)
 
@@ -106,6 +123,10 @@ func canMove(direction i32, line i32, collumn i32) (can_move bool)  {
 
 var mouse_clicked bool = false
 func mouse_button_callback(window str, key i32, action i32, mods i32) () {
+	if i32.eq(action, 1) && i32.eq(key, glfw.MouseButtonLeft) {
+    screens[current_screen] = screen_pkg.clickScreen(screens[current_screen])
+	}
+
 	if (action == 0) {
 		mouse_clicked = false
 	} else {
@@ -124,6 +145,7 @@ func cursor_pos_callback(window str, xpos f64, ypos f64) () {
 /* GAME LOGIC */
 
 var player Player
+var board Board
 
 var x_cells i32 = 28
 var y_cells i32 = 31
@@ -246,18 +268,6 @@ func getPosition3D(line i32, collumn i32) (v graphical.Vector3f) {
   return v
 }
 
-func renderBoard() () {
-	var g graphical.BoxGeometry
-  for i:=0; i<y_cells; i++ {
-    for j:=0; j<x_cells; j++ {
-			if i32.eq(cells[i][j].ctype, 1) {
-				g = cells[i][j].geometry
-				g.render()
-			}
-    }
-  }
-}
-
 func initScene() () {
   var i i32
   var j i32
@@ -309,69 +319,100 @@ func main () () {
 	var program i32
 	program = initGL()
 
-	// Loads all the necessary textures
+	// Initializes all the screens
+	screen = newHomeScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+	screens[0] = newHomeScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+	screens[1] = newGameScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+	screens[2] = newPauseScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+
+	// Loads all the game textures
 	loadPlayerTextures()
 	loadCellTextures()
 	loadPointTetures()
 
 	player = newPlayer(23, 13)  // Initializes the player
+	board = newBoard()
 
   initScene() // Initializes all game objects
 
 	var time f64
+	var x f64
+  var y f64
 	for bool.not(glfw.ShouldClose("window")) {
 		time = glfw.GetTime()
 
-		player = player.update(time)
-		for i:=0; i<len(simple_points); i++ {
-			simple_points[i] = simple_points[i].update(player.index_x, player.index_y, time)
+		if current_screen == 0 {
+			for j:=0; j<len(screens[0].layers); j++ {
+				if screens[0].layers[j].pending_callback {
+		      screens[0].layers[j].pending_callback = false
+
+					if str.eq(screens[0].layers[j].callback_id, "play-button") {
+						str.print(screens[0].layers[j].callback_id)
+						current_screen = 1
+					}
+		    }
+			}
+
+		} else if current_screen == 1 {
+			player = player.update(time)
+			for i:=0; i<len(simple_points); i++ {
+				simple_points[i] = simple_points[i].update(player.index_x, player.index_y, time)
+			}
+			for i=0; i<len(super_points); i++ {
+				super_points[i] = super_points[i].update(player.index_x, player.index_y, time)
+			}
+			var g Ghost
+			for i=0; i<4; i++ {
+				g = ghosts[i]
+				ghosts[i] = g.update(time)
+			}
 		}
-		for i=0; i<len(super_points); i++ {
-			super_points[i] = super_points[i].update(player.index_x, player.index_y, time)
-		}
-		var g Ghost
-		for i=0; i<4; i++ {
-			g = ghosts[i]
-			ghosts[i] = g.update(time)
-		}
+
+		x, y = glfw.GetCursorPos("window")
+		screens[current_screen] = screens[current_screen].update(f64.i32(x), f64.i32(y))
 
 		gl.Clear(i32.bitor(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT))
 		gl.LoadIdentity()
 
-		var ratio f64
-		ratio = f64.div(1200.0D, 800.0D)
-		gl.Ortho(
-			-1.0D*ratio+f32.f64(player.geometry.position.x),
-			1.0D*ratio+f32.f64(player.geometry.position.x),
-			1.0D+f32.f64(player.geometry.position.y),
-			-1.0D+f32.f64(player.geometry.position.y),
-			-1.0D,
-			1.0D)
+		gl.Disable(gl.DEPTH_TEST)
+		screens[current_screen].render()
+		gl.Enable(gl.DEPTH_TEST)
 
-		// Scales and rotates the scene
-		gl.Scalef(scale, scale, scale);
-		gl.Rotatef( rotate_x, 1.0, 0.0, 0.0 );
-		gl.Rotatef( rotate_y, 0.0, 1.0, 0.0 );
-		gl.Rotatef( rotate_z, 0.0, 0.0, 1.0 );
+		if current_screen == 1 {
+			var ratio f64
+			ratio = f64.div(1200.0D, 800.0D)
+			gl.Ortho(
+				-1.0D*ratio+f32.f64(player.geometry.position.x),
+				1.0D*ratio+f32.f64(player.geometry.position.x),
+				1.0D+f32.f64(player.geometry.position.y),
+				-1.0D+f32.f64(player.geometry.position.y),
+				-1.0D,
+				1.0D)
 
-		gl.UseProgram(program)
+			// Scales and rotates the scene
+			gl.Scalef(scale, scale, scale);
+			gl.Rotatef( rotate_x, 1.0, 0.0, 0.0 );
+			gl.Rotatef( rotate_y, 0.0, 1.0, 0.0 );
+			gl.Rotatef( rotate_z, 0.0, 0.0, 1.0 );
 
-		renderBoard()
+			gl.UseProgram(program)
 
-		player.render()
+			board.render()
+			player.render()
 
-		for i:=0; i<len(simple_points); i++ {
-			simple_points[i].render()
-		}
-		for i=0; i<len(super_points); i++ {
-			super_points[i].render()
-		}
+			for i:=0; i<len(simple_points); i++ {
+				simple_points[i].render()
+			}
+			for i=0; i<len(super_points); i++ {
+				super_points[i].render()
+			}
 
-		//var g Ghost
-		for i=0; i<4; i++ {
-			//ghosts[0].render() THROWS AN ERROR
-			g = ghosts[i]
-			g.render()
+			//var g Ghost
+			for i=0; i<4; i++ {
+				//ghosts[0].render() THROWS AN ERROR
+				g = ghosts[i]
+				g.render()
+			}
 		}
 
 		glfw.PollEvents()
