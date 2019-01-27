@@ -1,7 +1,7 @@
 package constants_pkg
 
-var SCREEN_WIDTH i32 = 1200
-var SCREEN_HEIGHT i32 = 800
+var SCREEN_WIDTH i32 = 1920
+var SCREEN_HEIGHT i32 = 1080
 
 
 package position_pkg
@@ -230,6 +230,10 @@ func clickCheckbox(checkbox CheckBox) (checkbox CheckBox) {
   }
 }
 
+func (checkbox CheckBox) render () {
+  str.print(checkbox.id)
+}
+
 func renderCheckBox(checkbox CheckBox) () {
   gl.LoadIdentity()
 
@@ -257,6 +261,53 @@ func renderCheckBox(checkbox CheckBox) () {
 	gl.End();
 }
 
+
+package radiobox_pkg
+
+import "gl"
+
+import "button_pkg"
+
+type Radiobox struct {
+  id str
+  boxes []button_pkg.CheckBox
+}
+
+func newRadiobox(id str) (radiobox Radiobox) {
+  radiobox = Radiobox{
+    id: id}
+  return radiobox
+}
+
+func (radiobox Radiobox) addBox(checkbox button_pkg.CheckBox) (radiobox Radiobox) {
+  if len(radiobox.boxes) == 0 {
+    checkbox.checked = true
+  }
+  radiobox.boxes = append(radiobox.boxes, checkbox)
+}
+
+func updateRadiobox(cursor_x i32, cursor_y i32, radiobox Radiobox) (radiobox Radiobox) {
+  for i:=0; i<len(radiobox.boxes); i++ {
+    radiobox.boxes[i] = button_pkg.updateCheckbox(cursor_x, cursor_y, radiobox.boxes[i])
+  }
+}
+
+func clickRadiobox(radiobox Radiobox) (radiobox Radiobox) {
+  for i:=0; i<len(radiobox.boxes); i++ {
+    if radiobox.boxes[i].hovered {
+      radiobox.boxes[i].checked = true
+    } else {
+      radiobox.boxes[i].checked = false
+    }
+  }
+  return radiobox
+}
+
+func renderRadiobox (radiobox Radiobox) {
+  for i:=0; i<len(radiobox.boxes); i++ {
+    button_pkg.renderCheckBox(radiobox.boxes[i])
+  }
+}
 
 
 package textbox_pkg
@@ -364,6 +415,7 @@ import "image_pkg"
 import "button_pkg"
 import "textbox_pkg"
 import "spinbox_pkg"
+import "radiobox_pkg"
 
 type Layer struct {
   id str
@@ -381,6 +433,7 @@ type Layer struct {
   checkboxes []button_pkg.CheckBox
   textboxes []textbox_pkg.Textbox
   spinboxes []spinbox_pkg.Spinbox
+  radioboxes []radiobox_pkg.Radiobox
 }
 
 func newLayer(_id str, _x f32, _y f32, _width i32, _height i32, _visible bool, _active bool) (layer Layer) {
@@ -413,6 +466,10 @@ func (layer Layer) addSpinbox (spinbox Spinbox) (layer Layer) {
   layer.spinboxes = append(layer.spinboxes, spinbox)
 }
 
+func (layer Layer) addRadiobox (radiobox Radiobox) (layer Layer) {
+  layer.radioboxes = append(layer.radioboxes, radiobox)
+}
+
 func updateLayer(mouse_x i32, mouse_y i32, layer Layer) (layer Layer) {
   if layer.active {
     var i i32
@@ -426,6 +483,9 @@ func updateLayer(mouse_x i32, mouse_y i32, layer Layer) (layer Layer) {
     for i=0; i<len(layer.spinboxes); i++ {
       layer.spinboxes[i] = spinbox_pkg.updateSpinbox(mouse_x, mouse_y, layer.spinboxes[i])
     }
+    for i=0; i<len(layer.radioboxes); i++ {
+      layer.radioboxes[i] = radiobox_pkg.updateRadiobox(mouse_x, mouse_y, layer.radioboxes[i])
+    }
   }
 }
 
@@ -435,15 +495,19 @@ func clickLayer(layer Layer) (layer Layer) {
     for i=0; i<layer.checkbox_count; i++ {
       layer.checkboxes[i] = button_pkg.clickCheckbox(layer.checkboxes[i])
     }
-    for i=0; i<layer.spinbox_count; i++ {
-      layer.spinboxes[i] = spinbox_pkg.clickSpinbox(layer.spinboxes[i])
-    }*/
+    */
 
     for i:=0; i<len(layer.buttons); i++ {
       if layer.buttons[i].hovered {
         layer.pending_callback = true
         layer.callback_id = layer.buttons[i].id
       }
+    }
+    for i=0; i<len(layer.spinboxes); i++ {
+      layer.spinboxes[i] = spinbox_pkg.clickSpinbox(layer.spinboxes[i])
+    }
+    for i=0; i<len(layer.radioboxes); i++ {
+      layer.radioboxes[i] = radiobox_pkg.clickRadiobox(layer.radioboxes[i])
     }
   }
 }
@@ -469,6 +533,9 @@ func renderLayer(layer Layer) (){
     }
     for i=0; i<len(layer.spinboxes); i++ {
       spinbox_pkg.renderSpinbox(layer.spinboxes[i])
+    }
+    for i=0; i<len(layer.radioboxes); i++ {
+      radiobox_pkg.renderRadiobox(layer.radioboxes[i])
     }
   }
   gl.PopMatrix()
@@ -508,7 +575,6 @@ func (screen Screen) addLayer(layer layer_pkg.Layer) (screen Screen) {
 }
 
 func (screen Screen) update(mouse_x i32, mouse_y i32) (screen Screen) {
-
   for i:=0; i<len(screen.layers); i++ {
     screen.layers[i] = layer_pkg.updateLayer(mouse_x, mouse_y, screen.layers[i])
   }

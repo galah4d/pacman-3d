@@ -31,13 +31,14 @@ var LEFT i32 = 2
 var RIGHT i32 = 0
 
 // Screens
-var SCREEN_WIDTH i32 = 1200
-var SCREEN_HEIGHT i32 = 800
-
+var SCREEN_WIDTH i32 = 1920
+var SCREEN_HEIGHT i32 = 1080
 var current_screen i32 = 0
-var screens [3]screen_pkg.Screen
-var screen screen_pkg.Screen
+var screens [4]screen_pkg.Screen
 
+/* Function     : initGLFW
+   Desctription : Initializes the game window and input callback functions.
+*/
 func initGLFW() {
 	glfw.Init()
 	glfw.WindowHint(glfw.Resizable, glfw.False)
@@ -52,6 +53,10 @@ func initGLFW() {
 	glfw.SetMouseButtonCallback("window", "mouse_button_callback")
 }
 
+/* Function     : initOpenGL
+   Output       : OpenGL program (program i32)
+   Desctription : Initializes the OpenGL lib.
+*/
 func initGL() (program i32) {
 	gl.Init()
 	gl.Enable(gl.BLEND)
@@ -76,31 +81,6 @@ func keyboardManager(window str, key i32, scancode i32, action i32, mods i32) ()
   }
   if bool.and(i32.eq(key, UP_ARROW_KEY), i32.eq(action, 1)) {
 		player.direction = UP
-  }
-}
-
-func movePlayer(direction i32) () {
-  if bool.eq(canMove(direction, player.index_y, player.index_x), true) {
-    // Move Up
-    if i32.eq(direction, UP) {
-      player.index_y = i32.sub(player.index_y, 1)
-    }
-    // Move Down
-    if i32.eq(direction, DOWN) {
-      player.index_y = i32.add(player.index_y, 1)
-    }
-    // Move Left
-    if i32.eq(direction, LEFT) {
-      player.index_x = i32.sub(player.index_x, 1)
-    }
-    // Move Right
-    if i32.eq(direction, RIGHT) {
-      player.index_x = i32.add(player.index_x, 1)
-    }
-    // Update the current player direction
-    player.direction = direction
-    // Update the player position
-    player.geometry.position = getPosition3D(player.index_y, player.index_x)
   }
 }
 
@@ -320,10 +300,10 @@ func main () () {
 	program = initGL()
 
 	// Initializes all the screens
-	screen = newHomeScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[0] = newHomeScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[1] = newGameScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[2] = newPauseScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+	screens[3] = newSettingsScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 	// Loads all the game textures
 	loadPlayerTextures()
@@ -341,19 +321,36 @@ func main () () {
 	for bool.not(glfw.ShouldClose("window")) {
 		time = glfw.GetTime()
 
+		// Home screen
 		if current_screen == 0 {
 			for j:=0; j<len(screens[0].layers); j++ {
 				if screens[0].layers[j].pending_callback {
 		      screens[0].layers[j].pending_callback = false
 
 					if str.eq(screens[0].layers[j].callback_id, "play-button") {
-						str.print(screens[0].layers[j].callback_id)
 						current_screen = 1
+					} else if str.eq(screens[0].layers[j].callback_id, "settings-button") {
+						current_screen = 3
 					}
 		    }
 			}
 
+		// Game screen
 		} else if current_screen == 1 {
+			for j:=0; j<len(screens[1].layers); j++ {
+				if screens[1].layers[j].pending_callback {
+		      screens[1].layers[j].pending_callback = false
+
+					if str.eq(screens[1].layers[j].callback_id, "pause-button") {
+						current_screen = 2
+					}
+					// FIXME @galah4d redirect to home screen, OpenGl crashes.
+					/*else if str.eq(screens[2].layers[j].callback_id, "exit-button") {
+						current_screen = 0
+					}*/
+		    }
+			}
+
 			player = player.update(time)
 			for i:=0; i<len(simple_points); i++ {
 				simple_points[i] = simple_points[i].update(player.index_x, player.index_y, time)
@@ -365,6 +362,36 @@ func main () () {
 			for i=0; i<4; i++ {
 				g = ghosts[i]
 				ghosts[i] = g.update(time)
+			}
+
+		// Pause screen
+		} else if current_screen == 2 {
+			for j:=0; j<len(screens[2].layers); j++ {
+				if screens[2].layers[j].pending_callback {
+		      screens[2].layers[j].pending_callback = false
+
+					if str.eq(screens[2].layers[j].callback_id, "resume-button") {
+						current_screen = 1
+					}
+					// FIXME @galah4d redirect to home screen, OpenGl crashes.
+					/*else if str.eq(screens[2].layers[j].callback_id, "exit-button") {
+						current_screen = 0
+					}*/
+		    }
+			}
+
+		// Settings screen
+		} else if current_screen == 3 {
+			for i:=0; i<len(screens[i].layers); i++ {
+				if screens[3].layers[i].pending_callback {
+					screens[3].layers[i].pending_callback = false
+
+					if str.eq(screens[3].layers[i].callback_id, "cancel-button") {
+						current_screen = 0
+					} else if str.eq(screens[3].layers[i].callback_id, "save-button") {
+						current_screen = 0
+					}
+				}
 			}
 		}
 
@@ -380,7 +407,7 @@ func main () () {
 
 		if current_screen == 1 {
 			var ratio f64
-			ratio = f64.div(1200.0D, 800.0D)
+			ratio = f64.div(1920.0D, 1080.0D)
 			gl.Ortho(
 				-1.0D*ratio+f32.f64(player.geometry.position.x),
 				1.0D*ratio+f32.f64(player.geometry.position.x),
