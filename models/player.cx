@@ -40,7 +40,7 @@ func newPlayer (line i32, collumn i32) (pl Player) {
   pl = Player{
     index_x: collumn,
     index_y: line,
-    direction: RIGHT, // TODO add direction constants
+    direction: RIGHT,
     geometry: graphical.newSphereGeometry(PLAYER_RADIUS, 10, materials[0]),
     materials: materials,
     current_material: 0,
@@ -115,45 +115,6 @@ func (player Player) move () (player Player) { // TOFIX buggy
   }
   return player
 }
-
-/*
-func (player Player) move () (player Player) { // TOFIX buggy
-  var nextCellPosition Vector3f
-
-  if i32.eq(player.direction, UP) {
-    if player.insideCell(cells[player.index_x][i32.sub(player.index_y, 1)]) {
-      player.index_y = i32.sub(player.index_y, 1)
-      player.geometry.position.y = cells[player.index_x][player.index_y].geometry.position.y
-    } else {
-      player.geometry.position.y = player.geometry.position.y - 0.01
-    }
-  }
-  if i32.eq(player.direction, DOWN) {
-    if player.insideCell(cells[player.index_x][i32.add(player.index_y, 1)]) {
-      player.index_y = i32.add(player.index_y, 1)
-      player.geometry.position.y = cells[player.index_x][player.index_y].geometry.position.y
-    } else {
-      player.geometry.position.y = player.geometry.position.y + 0.01
-    }
-  }
-  if i32.eq(player.direction, LEFT) {
-    player.geometry.position.x = player.geometry.position.x - 0.01
-    nextCellPosition = getPosition3D(player.index_y, i32.sub(player.index_x, 1))
-    if ((player.geometry.position.x > f32.sub(nextCellPosition.x, 0.005)) && (player.geometry.position.x < f32.add(nextCellPosition.x, 0.005))) {
-        player.index_x = i32.sub(player.index_x, 1)
-        player.geometry.position = nextCellPosition
-    }
-  }
-  if i32.eq(player.direction, RIGHT) {
-    player.geometry.position.x = player.geometry.position.x + 0.01
-    nextCellPosition = getPosition3D(player.index_y, i32.add(player.index_x, 1))
-    if ((player.geometry.position.x > f32.sub(nextCellPosition.x, 0.005)) && (player.geometry.position.x < f32.add(nextCellPosition.x, 0.005))) {
-        player.index_x = i32.add(player.index_x, 1)
-        player.geometry.position = nextCellPosition
-    }
-  }
-  return player
-}*/
 
 func (player Player) insideCell(cell Cell) (inside bool) {
   margin_x := f32.div(cell.geometry.dimensions.x, 10.0)

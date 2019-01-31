@@ -78,7 +78,7 @@ func newGhost (line i32, collumn i32, gtype i32) (ghost Ghost) {
   return ghost
 }
 
-func (ghost Ghost) update (time f64) (ghost Ghost) {
+func (ghost Ghost) update (time f64, player_collumn i32, player_line i32) (ghost Ghost) {
   if ghost.mode == GHOST_MODE_FRIGHTENED {
     if GHOST_FRIGHTENED_TIMER <= f64.sub(time, ghost.frightened_timer) {
       ghost.mode = GHOST_MODE_CHASE
@@ -86,7 +86,7 @@ func (ghost Ghost) update (time f64) (ghost Ghost) {
   }
 
   // Incarcerates the ghost
-  if bool.and(i32.eq(ghost.index_x, player.index_x), i32.eq(ghost.index_y, player.index_y)) {
+  if bool.and(i32.eq(ghost.index_x, player_collumn), i32.eq(ghost.index_y, player_line)) {
     ghost = ghost.incarcerate()
     ghost.release_timer = time
   }
@@ -101,7 +101,7 @@ func (ghost Ghost) update (time f64) (ghost Ghost) {
 
   // Moves the ghost
   if GHOST_MOVEMENT_TIMER <= f64.sub(time, ghost.movement_timer) {
-    ghost = ghost.move()
+    ghost = ghost.move(player_collumn, player_collumn)
     ghost.movement_timer = time
   }
 }
@@ -123,8 +123,8 @@ func (ghost Ghost) frighten () (ghost Ghost) {
   //ghost.head_geometry.material = graphical
 }
 
-func (ghost Ghost) move () (ghost Ghost) {
-  ghost.direction = ghost.calculateDirection()
+func (ghost Ghost) move (player_collumn i32, player_line i32) (ghost Ghost) {
+  ghost.direction = ghost.calculateDirection(player_collumn, player_line)
 
   if i32.eq(ghost.direction, UP) {
     ghost.index_y = i32.sub(ghost.index_y, 1)
@@ -142,10 +142,10 @@ func (ghost Ghost) move () (ghost Ghost) {
   ghost.head_geometry.position = getPosition3D(ghost.index_y, ghost.index_x)
 }
 
-func (ghost Ghost) calculateDirection() (direction i32) {
+func (ghost Ghost) calculateDirection(player_collumn i32, player_line i32) (direction i32) {
   // Calculates the ghost moving direction depending on the current mode mode
   if i32.eq(ghost.mode, GHOST_MODE_CHASE) {
-    direction = calculateGhostDirection(ghost, player.index_x, player.index_y)
+    direction = calculateGhostDirection(ghost, player_collumn, player_line)
 
   } else if i32.eq(ghost.mode, GHOST_MODE_SCATTER) {
     if i32.eq(ghost.gtype, GHOST_TYPE_SHADOW) {

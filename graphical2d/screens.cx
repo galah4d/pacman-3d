@@ -104,3 +104,23 @@ func newSettingsScreen(screen_width i32, screen_height i32) (settings_screen scr
 
 	return settings_screen
 }
+
+func newGraphicalSettingsScreen(screen_width i32, screen_height i32) (g_settings_screen screen_pkg.Screen) {
+	g_settings_screen = screen_pkg.newScreen("graphical-settings-screen", screen_width, screen_height)
+	g_settings_screen = g_settings_screen.setBackground("static/texture/screen/blue-background.jpg")
+
+	var buttons_layer layer_pkg.Layer
+	buttons_layer = layer_pkg.newLayer("buttons-layer", 0.0, 0.0, screen_width, i32.div(screen_height, 2), true, true)
+
+	var x_rotation_spinbox spinbox_pkg.Spinbox
+	x_rotation_spinbox = spinbox_pkg.newSpinbox(
+		"select-level", 1, 1, 9,
+		button_pkg.newButton("minus-button", -0.2, -0.5, 75, 75, "static/texture/btn/MINUS-button-inactive.png", "static/texture/btn/MINUS-button-active.png"),
+		button_pkg.newButton("plus-button", 0.2, -0.5, 75, 75, "static/texture/btn/PLUS-button-inactive.png", "static/texture/btn/PLUS-button-active.png"),
+		textbox_pkg.newTextbox("level-label", 0.0, -0.5, "Level Label", "SkycoinSans36-Light"))
+	buttons_layer = buttons_layer.addSpinbox(x_rotation_spinbox)
+
+	g_settings_screen = g_settings_screen.addLayer(buttons_layer)
+
+	return g_settings_screen
+}

@@ -13,34 +13,55 @@ var CODE_TELEPORT i32 = 4
 var CODE_GATE i32 = 5
 
 type Board struct {
+  id str
   cells [31][28]Cell
   simple_points []SimplePoint
   super_points []SuperPoint
 }
 
 func newBoard() (board Board) {
+  board = Board{
+    id: "Skycoin"}
   var line [28]i32
   for i:=0; i<31; i++ {
     line = loadBoardLine(i)
     for j:=0; j<28; j++ {
+
       if line[j] == CODE_WALL {
         board.cells[i][j] = newWallCell(i, j)
-      }
-      if line[j] == CODE_PATH {
+
+      } else if line[j] == CODE_PATH {
+        board.cells[i][j] = newPathCell(i, j)
+
+      } else if line[j] == CODE_SIMPLE_POINT {
+        board.simple_points = append(board.simple_points, newSimplePoint(i, j))
         board.cells[i][j] = newPathCell(i, j)
       }
     }
   }
+  i32.print(len(board.simple_points))
   return board
 }
 
 func (board Board) render () {
+  //str.print("Randering board")
   var cell Cell
   for i:=0; i<BOARD_LINES; i++ {
     for j:=0; j<BOARD_COLLUMNS; j++ {
-			cell = cells[i][j]
+			cell = board.cells[i][j]
 			cell.render()
     }
+  }
+  var simple_point SimplePoint
+  i32.print(len(board.simple_points))
+  for i=0; i<len(board.simple_points); i++ {
+    simple_point = board.simple_points[i]
+    simple_point.render()
+  }
+  var super_point SuperPoint
+  for i=0; i<len(board.super_points); i++ {
+    super_point = board.super_points[i]
+    super_point.render()
   }
 }
 

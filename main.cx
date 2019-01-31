@@ -19,11 +19,6 @@ var LEFT_ARROW_KEY i32 = 263
 var DOWN_ARROW_KEY i32 = 264
 var UP_ARROW_KEY i32 = 265
 
-var rotate_x f32 = 25.0
-var rotate_y f32 = 0.0
-var rotate_z f32 = 25.0
-var scale f32 = 1.5
-
 // Directions
 var UP i32 = 1
 var DOWN i32 = 3
@@ -34,7 +29,9 @@ var RIGHT i32 = 0
 var SCREEN_WIDTH i32 = 1920
 var SCREEN_HEIGHT i32 = 1080
 var current_screen i32 = 0
-var screens [4]screen_pkg.Screen
+var screens [5]screen_pkg.Screen
+
+var EXIT_FLAG bool = false
 
 /* Function     : initGLFW
    Desctription : Initializes the game window and input callback functions.
@@ -70,168 +67,68 @@ func initGL() (program i32) {
 }
 
 func keyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
+	if current_screen == 0 {
+		homeScreenKeyboardManager(window, key, scancode, action, mods)
+	} else if current_screen == 1 {
+		gameScreenKeyboardManager(window, key, scancode, action, mods)
+	}
+}
+
+func homeScreenKeyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
+	if bool.and(i32.eq(key, 256), i32.eq(action, 1)) {
+    EXIT_FLAG = true
+	}
+}
+
+func gameScreenKeyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
 	if bool.and(i32.eq(key, RIGHT_ARROW_KEY), i32.eq(action, 1)) {
-    player.direction = RIGHT
-  }
-  if bool.and(i32.eq(key, LEFT_ARROW_KEY), i32.eq(action, 1)) {
-		player.direction = LEFT
-  }
-  if bool.and(i32.eq(key, DOWN_ARROW_KEY), i32.eq(action, 1)) {
-		player.direction = DOWN
-  }
-  if bool.and(i32.eq(key, UP_ARROW_KEY), i32.eq(action, 1)) {
-		player.direction = UP
+    game.player.direction = RIGHT
+
+	} else if bool.and(i32.eq(key, LEFT_ARROW_KEY), i32.eq(action, 1)) {
+		game.player.direction = LEFT
+
+	} else if bool.and(i32.eq(key, DOWN_ARROW_KEY), i32.eq(action, 1)) {
+		game.player.direction = DOWN
+
+	} else if bool.and(i32.eq(key, UP_ARROW_KEY), i32.eq(action, 1)) {
+		game.player.direction = UP
   }
 }
 
 func canMove(direction i32, line i32, collumn i32) (can_move bool)  {
   var can_move bool = false
-  if bool.and(i32.eq(direction, UP), bool.not(i32.eq(cells[i32.sub(line, 1)][collumn].ctype, WALL_CELL))) {
+  if bool.and(i32.eq(direction, UP), bool.not(i32.eq(game.board.cells[i32.sub(line, 1)][collumn].ctype, WALL_CELL))) {
     can_move = true
   }
-  if bool.and(i32.eq(direction, DOWN), bool.not(i32.eq(cells[i32.add(line, 1)][collumn].ctype, WALL_CELL))) {
+  if bool.and(i32.eq(direction, DOWN), bool.not(i32.eq(game.board.cells[i32.add(line, 1)][collumn].ctype, WALL_CELL))) {
     can_move = true
   }
-  if bool.and(i32.eq(direction, LEFT), bool.not(i32.eq(cells[line][i32.sub(collumn, 1)].ctype, WALL_CELL))) {
+  if bool.and(i32.eq(direction, LEFT), bool.not(i32.eq(game.board.cells[line][i32.sub(collumn, 1)].ctype, WALL_CELL))) {
     can_move = true
   }
-  if bool.and(i32.eq(direction, RIGHT), bool.not(i32.eq(cells[line][i32.add(collumn, 1)].ctype, WALL_CELL))) {
+  if bool.and(i32.eq(direction, RIGHT), bool.not(i32.eq(game.board.cells[line][i32.add(collumn, 1)].ctype, WALL_CELL))) {
     can_move = true
   }
   return can_move
 }
 
-var mouse_clicked bool = false
 func mouse_button_callback(window str, key i32, action i32, mods i32) () {
 	if i32.eq(action, 1) && i32.eq(key, glfw.MouseButtonLeft) {
     screens[current_screen] = screen_pkg.clickScreen(screens[current_screen])
 	}
-
-	if (action == 0) {
-		mouse_clicked = false
-	} else {
-		mouse_clicked = true
-	}
 }
 
-var old_x f64
 func cursor_pos_callback(window str, xpos f64, ypos f64) () {
-	if mouse_clicked {
-		rotate_z = rotate_z + 0.2*f64.f32(xpos - old_x)
-	}
-	old_x = xpos
+	// Removed
 }
 
 /* GAME LOGIC */
 
-var player Player
-var board Board
+var game Game
 
 var x_cells i32 = 28
 var y_cells i32 = 31
 var cells [31][28]Cell
-
-var simple_points []SimplePoint
-var super_points 	[]SuperPoint
-
-var ghosts [4]Ghost
-
-func get_board_line(i i32) (line [28]i32) {
-    if i32.eq(i, 1) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 2) {
-      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 3) {
-      line = [28]i32{1,  2,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  2,  1}
-    }
-    if i32.eq(i, 4) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 5) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 6) {
-      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 7) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 8) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 9) {
-      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 10) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  3,  1,  1,  3,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 11) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  3,  1,  1,  3,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 12) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 13) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 14) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  3,  3,  3,  3,  3,  3,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 15) {
-      line = [28]i32{3,  3,  3,  3,  3,  1,  0,  3,  3,  3,  1,  3,  3,  3,  3,  3,  3,  1,  3,  3,  3,  0,  1,  3,  3,  3,  3,  3}
-    }
-    if i32.eq(i, 16) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  3,  3,  3,  3,  3,  3,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 17) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 18) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 19) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 20) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  0,  1,  1,  3,  1,  1,  1,  1,  1,  1,  1,  1,  3,  1,  1,  0,  1,  1,  1,  1,  1,  1}
-    }
-    if i32.eq(i, 21) {
-      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 22) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 23) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 24) {
-      line = [28]i32{1,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 25) {
-      line = [28]i32{1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1}
-    }
-    if i32.eq(i, 26) {
-      line = [28]i32{1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  0,  1,  1,  1}
-    }
-    if i32.eq(i, 27) {
-      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 28) {
-      line = [28]i32{1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1}
-    }
-    if i32.eq(i, 29) {
-      line = [28]i32{1,  2,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  1}
-    }
-    if i32.eq(i, 30) {
-      line = [28]i32{1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1}
-    }
-    if i32.eq(i, 31) {
-      line = [28]i32{1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1}
-    }
-    return line
-}
 
 // Item Types
 var PATH_CELL i32 = 3
@@ -248,52 +145,6 @@ func getPosition3D(line i32, collumn i32) (v graphical.Vector3f) {
   return v
 }
 
-func initScene() () {
-  var i i32
-  var j i32
-
-  // Initialize game board items
-  var line [28]i32
-  for i=0; i<y_cells; i++ {
-    line = get_board_line(i32.add(i, 1))
-    for j=0; j<x_cells; j++ {
-      initializeItem(i, j, line[j])
-    }
-  }
-
-	initGhosts()
-}
-
-func initGhosts() {
-	loadGhostTextures()
-	for i:=0; i<4; i++ {
-		ghosts[i] = newGhost(13, 14, i)
-	}
-}
-
-func initializeItem(line i32, col i32, item_type i32) () {
-  if i32.eq(item_type, WALL_CELL) {
-    cells[line][col] = newCell(line, col, WALL_CELL)
-  }
-	/*
-  if i32.eq(item_type, PATH_CELL) {
-    cells[line][col] = newCell(line, col, PATH_CELL)
-  }*/
-  if i32.eq(item_type, PATH_CELL_WITH_SIMPLE_POINT) {
-		simple_points = append(simple_points, newSimplePoint(line, col))
-  }
-  if i32.eq(item_type, PATH_CELL_WITH_SUPER_POINT) {
-		super_points = append(super_points, newSuperPoint(line, col))
-  }
-	/*
-  if i32.eq(item_type, TELEPORT_CELL) { // FIX ME merge multiple cases together
-    cells[line][col] = newCell(line, col, TELEPORT_CELL)
-  }
-  if i32.eq(item_type, GATE_CELL) {
-    cells[line][col] = newCell(line, col, GATE_CELL)
-  }*/
-}
-
 func main () () {
 	initGLFW()
 	var program i32
@@ -304,23 +155,13 @@ func main () () {
 	screens[1] = newGameScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[2] = newPauseScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[3] = newSettingsScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+	screens[4] = newGraphicalSettingsScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-	// Loads all the game textures
-	loadPlayerTextures()
-	loadCellTextures()
-	loadPointTetures()
+	game = initGame()
 
-	player = newPlayer(23, 13)  // Initializes the player
-	board = newBoard()
-
-  initScene() // Initializes all game objects
-
-	var time f64
 	var x f64
   var y f64
 	for bool.not(glfw.ShouldClose("window")) {
-		time = glfw.GetTime()
-
 		// Home screen
 		if current_screen == 0 {
 			for j:=0; j<len(screens[0].layers); j++ {
@@ -350,19 +191,7 @@ func main () () {
 					}*/
 		    }
 			}
-
-			player = player.update(time)
-			for i:=0; i<len(simple_points); i++ {
-				simple_points[i] = simple_points[i].update(player.index_x, player.index_y, time)
-			}
-			for i=0; i<len(super_points); i++ {
-				super_points[i] = super_points[i].update(player.index_x, player.index_y, time)
-			}
-			var g Ghost
-			for i=0; i<4; i++ {
-				g = ghosts[i]
-				ghosts[i] = g.update(time)
-			}
+			game = game.update()
 
 		// Pause screen
 		} else if current_screen == 2 {
@@ -406,40 +235,7 @@ func main () () {
 		gl.Enable(gl.DEPTH_TEST)
 
 		if current_screen == 1 {
-			var ratio f64
-			ratio = f64.div(1920.0D, 1080.0D)
-			gl.Ortho(
-				-1.0D*ratio+f32.f64(player.geometry.position.x),
-				1.0D*ratio+f32.f64(player.geometry.position.x),
-				1.0D+f32.f64(player.geometry.position.y),
-				-1.0D+f32.f64(player.geometry.position.y),
-				-1.0D,
-				1.0D)
-
-			// Scales and rotates the scene
-			gl.Scalef(scale, scale, scale);
-			gl.Rotatef( rotate_x, 1.0, 0.0, 0.0 );
-			gl.Rotatef( rotate_y, 0.0, 1.0, 0.0 );
-			gl.Rotatef( rotate_z, 0.0, 0.0, 1.0 );
-
-			gl.UseProgram(program)
-
-			board.render()
-			player.render()
-
-			for i:=0; i<len(simple_points); i++ {
-				simple_points[i].render()
-			}
-			for i=0; i<len(super_points); i++ {
-				super_points[i].render()
-			}
-
-			//var g Ghost
-			for i=0; i<4; i++ {
-				//ghosts[0].render() THROWS AN ERROR
-				g = ghosts[i]
-				g.render()
-			}
+			game.render(program)
 		}
 
 		glfw.PollEvents()
