@@ -7,11 +7,9 @@ type Vector3f struct {
 }
 
 func newVector3f(_x f32, _y f32, _z f32) (v Vector3f) {
-	v = Vector3f{
-		x: _x,
-		y: _y,
-		z: _z}
-	return v
+	v.x = _x
+	v.y = _y
+	v.z = _z
 }
 
 type Material struct {
@@ -21,8 +19,8 @@ type Material struct {
 }
 
 func newMaterial(red f32, green f32, blue f32) (mat Material) {
-	mat = Material{color: newVector3f(red, green, blue), textured: false}
-	return mat
+	mat.color = newVector3f(red, green, blue)
+	mat.textured = false
 }
 
 func (material Material) setTexture(texture i32) (material Material) {

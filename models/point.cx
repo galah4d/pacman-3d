@@ -12,6 +12,7 @@ var PATH_CELL_WITH_SIMPLE_POINT i32 = 0
 var PATH_CELL_WITH_SUPER_POINT i32 = 2
 
 var point_textures [2]i32
+
 func loadPointTetures () {
   point_textures[0] = gl.NewTexture("textures/points/simple-point-texture.jpg")
   point_textures[1] = gl.NewTexture("textures/points/super-point-texture.jpg")
@@ -25,12 +26,10 @@ type Point struct {
 }
 
 func newPoint (line i32, collumn i32) (point Point) {
-  point = Point {
-    index_x: collumn,
-    index_y: line,
-    active: true,
-    last_update: 0.0D}
-  return point
+  point.index_x = collumn
+  point.index_y = line
+  point.active = true
+  point.last_update = 0.0D
 }
 
 func (point Point) update (player_x i32, player_y i32, time f64) (point Point) {
@@ -47,16 +46,17 @@ type SimplePoint struct {
 
 func newSimplePoint(line i32, collumn i32) (point SimplePoint) {
   var mat graphical.Material
-  mat = graphical.newMaterial(1.0, 1.0, 1.0)
-  mat = mat.setTexture(point_textures[0])
+  var mats [6]graphical.Material
+  for i:=0; i<6; i++ {
+    mat = graphical.newMaterial(1.0, 1.0, 1.0)
+    mat = mat.setTexture(point_textures[0])
+    mats[i] = mat
+  }
 
-  point = SimplePoint {
-    point: newPoint(line, collumn),
-    geometry: graphical.newBoxGeometry(0.01, 0.01, 0.01, mat)}
+  point.point = newPoint(line, collumn)
+  point.geometry = graphical.newBoxGeometry(0.01, 0.01, 0.01, mats)
   point.geometry.position = getPosition3D(line, collumn)
   point.geometry.rotation = graphical.newVector3f(0.0, 0.0, 0.0)
-
-  return point
 }
 
 func (point SimplePoint) update (player_x i32, player_y i32, time f64) (point SimplePoint) {
@@ -83,13 +83,10 @@ func newSuperPoint(line i32, collumn i32) (point SuperPoint) {
   mat = graphical.newMaterial(1.0, 1.0, 1.0)
   mat = mat.setTexture(point_textures[1])
 
-  point = SuperPoint {
-    point: newPoint(line, collumn),
-    geometry: graphical.newCylinderGeometry(0.03, 0.02, 10, mat)}
+  point.point = newPoint(line, collumn)
+  point.geometry = graphical.newCylinderGeometry(0.03, 0.02, 10, mat)
   point.geometry.position = getPosition3D(line, collumn)
   point.geometry.rotation = graphical.newVector3f(90.0, 0.0, 0.0)
-
-  return point
 }
 
 func (point SuperPoint) update (player_x i32, player_y i32, time f64) (point SuperPoint) {

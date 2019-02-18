@@ -43,7 +43,7 @@ import "dimensions_pkg"
 func loadTexture(relative_path str) (texture i32) {
   var wd str
 	wd = os.GetWorkingDirectory()
-  texture := gl.NewTexture(sprintf("%s%s", wd, relative_path))
+  texture = gl.NewTexture(sprintf("%s%s", wd, relative_path))
 }
 
 func scale(value i32, max i32) (scaled f32) {
@@ -51,11 +51,11 @@ func scale(value i32, max i32) (scaled f32) {
 }
 
 func relative2absoluteX(relative_position f32, max_px i32) (absolute_position i32) {
-  absolute_position := f32.i32(f32.div(i32.f32(max_px), 2.0) + f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0)))
+  absolute_position = f32.i32(f32.div(i32.f32(max_px), 2.0) + f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0)))
 }
 
 func relative2absoluteY(relative_position f32, max_px i32) (absolute_position i32) {
-  absolute_position := f32.i32(f32.div(i32.f32(max_px), 2.0) - f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0)))
+  absolute_position = f32.i32(f32.div(i32.f32(max_px), 2.0) - f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0)))
 }
 
 func cursorInsideArea(mouse_x i32, mouse_y i32, area_position position_pkg.Position, area_dimensions dimensions_pkg.Dimensions) (inside bool) {
@@ -88,20 +88,20 @@ type Image struct {
 }
 
 func newImage(_id str, _x f32, _y f32, _width i32, _height i32, _path str) (image Image) {
-  image := Image{
-    id: _id,
-    position: position_pkg.newPosition(_x, _y),
-    dimensions: dimensions_pkg.newDimensions(_width, _height),
-    texture: aux_pkg.loadTexture(_path)}
+  image.id = _id
+  image.position = position_pkg.newPosition(_x, _y)
+  image.dimensions = dimensions_pkg.newDimensions(_width, _height)
+  image.texture = aux_pkg.loadTexture(_path)
 }
 
 func renderImage(image Image) () {
   gl.PushMatrix()
 
   gl.Translatef(image.position.x, image.position.y, 0.0)
-  scaled_w := aux_pkg.scale(image.dimensions.width, constants_pkg.SCREEN_WIDTH)
-  scaled_h := aux_pkg.scale(image.dimensions.height, constants_pkg.SCREEN_HEIGHT)
-  gl.Scalef(scaled_w, scaled_h, 0.0)
+  gl.Scalef(
+    aux_pkg.scale(image.dimensions.width, constants_pkg.SCREEN_WIDTH),
+    aux_pkg.scale(image.dimensions.height, constants_pkg.SCREEN_HEIGHT),
+    0.0)
 
   gl.BindTexture(gl.TEXTURE_2D, image.texture)
 	gl.Begin(gl.QUADS)
@@ -142,12 +142,11 @@ func newButton(_id str, _x f32, _y f32, _width i32, _height i32, _path1 str, _pa
   _textures[0] = aux_pkg.loadTexture(_path1)
   _textures[1] = aux_pkg.loadTexture(_path2)
 
-  button := Button{
-    id: _id,
-    position: position_pkg.newPosition(_x, _y),
-    dimensions: dimensions_pkg.newDimensions(_width, _height),
-    hovered: false,
-    textures: _textures}
+  button.id = _id
+  button.position = position_pkg.newPosition(_x, _y)
+  button.dimensions = dimensions_pkg.newDimensions(_width, _height)
+  button.hovered = false
+  button.textures = _textures
 }
 
 func updateButton(mouse_x i32, mouse_y i32, button Button) (button Button) {
@@ -168,9 +167,10 @@ func renderButton(button Button) () {
   gl.PushMatrix()
 
   gl.Translatef(button.position.x, button.position.y, 0.0)
-  scaled_w := aux_pkg.scale(button.dimensions.width, constants_pkg.SCREEN_WIDTH)
-  scaled_h := aux_pkg.scale(button.dimensions.height, constants_pkg.SCREEN_HEIGHT)
-  gl.Scalef(scaled_w, scaled_h, 0.0)
+  gl.Scalef(
+    aux_pkg.scale(button.dimensions.width, constants_pkg.SCREEN_WIDTH),
+    aux_pkg.scale(button.dimensions.height, constants_pkg.SCREEN_HEIGHT),
+    0.0)
 
   if bool.not(button.hovered) {
     gl.BindTexture(gl.TEXTURE_2D, button.textures[0])
@@ -207,13 +207,12 @@ func newCheckbox(_id str, _x f32, _y f32, _width i32, _height i32, _path1 str, _
   _textures[0] = aux_pkg.loadTexture(_path1)
   _textures[1] = aux_pkg.loadTexture(_path2)
 
-  checkbox := CheckBox{
-    id: _id,
-    position: position_pkg.newPosition(_x, _y),
-    dimensions: dimensions_pkg.newDimensions(_width, _height),
-    hovered: false,
-    checked: false,
-    textures: _textures}
+  checkbox.id = _id
+  checkbox.position = position_pkg.newPosition(_x, _y)
+  checkbox.dimensions = dimensions_pkg.newDimensions(_width, _height)
+  checkbox.hovered = false
+  checkbox.checked = false
+  checkbox.textures = _textures
 }
 
 func updateCheckbox(mouse_x i32, mouse_y i32, checkbox CheckBox) (checkbox CheckBox) {
@@ -245,9 +244,10 @@ func renderCheckBox(checkbox CheckBox) () {
 
   gl.Translatef(checkbox.position.x, checkbox.position.y, 0.0)
 
-  scaled_w := aux_pkg.scale(checkbox.dimensions.width, constants_pkg.SCREEN_WIDTH)
-  scaled_h := aux_pkg.scale(checkbox.dimensions.height, constants_pkg.SCREEN_HEIGHT)
-  gl.Scalef(scaled_w, scaled_h, 0.0)
+  gl.Scalef(
+    aux_pkg.scale(checkbox.dimensions.width, constants_pkg.SCREEN_WIDTH),
+    aux_pkg.scale(checkbox.dimensions.height, constants_pkg.SCREEN_HEIGHT),
+    0.0)
 
 	gl.Begin(gl.QUADS)
 	gl.TexCoord2d(0.0D, 0.0D);
@@ -274,8 +274,7 @@ type Radiobox struct {
 }
 
 func newRadiobox(id str) (radiobox Radiobox) {
-  radiobox = Radiobox{
-    id: id}
+  radiobox.id = id
   return radiobox
 }
 
@@ -327,19 +326,19 @@ type Textbox struct {
 }
 
 func newTextbox(_id str, _x f32, _y f32, _text str, _font str) (textbox Textbox) {
-  textbox := Textbox{
-    id: _id,
-    position: position_pkg.newPosition(_x, _y),
-    text: _text,
-    font: _font}
+  textbox.id = _id
+  textbox.position = position_pkg.newPosition(_x, _y)
+  textbox.text = _text
+  textbox.font = _font
 }
 
 func renderTextbox(textbox Textbox) () { // FIXME color overlay
   gl.Color3f(0.98, 0.98, 0.98)        // FIXME add custom colors
-
-  x := i32.f32(aux_pkg.relative2absoluteX(textbox.position.x, constants_pkg.SCREEN_WIDTH))
-  y := i32.f32(aux_pkg.relative2absoluteY(textbox.position.y, constants_pkg.SCREEN_HEIGHT))
-  gltext.Printf(textbox.font, x, y, textbox.text)
+  gltext.Printf(
+    textbox.font,
+    i32.f32(aux_pkg.relative2absoluteX(textbox.position.x, constants_pkg.SCREEN_WIDTH)),
+    i32.f32(aux_pkg.relative2absoluteY(textbox.position.y, constants_pkg.SCREEN_HEIGHT)),
+    textbox.text)
 }
 
 
@@ -437,13 +436,12 @@ type Layer struct {
 }
 
 func newLayer(_id str, _x f32, _y f32, _width i32, _height i32, _visible bool, _active bool) (layer Layer) {
-  layer := Layer{
-    id: _id,
-    position: position_pkg.newPosition(_x, _y),
-    dimensions: dimensions_pkg.newDimensions(_width, _height),
-    visible: _visible,
-    active: _active,
-    pending_callback: false}
+  layer.id = _id
+  layer.position = position_pkg.newPosition(_x, _y)
+  layer.dimensions = dimensions_pkg.newDimensions(_width, _height)
+  layer.visible = _visible
+  layer.active = _active
+  layer.pending_callback = false
 }
 
 func (layer Layer) addImage(image Image) (layer Layer) {
@@ -560,9 +558,8 @@ type Screen struct {
 }
 
 func newScreen(_id str, _width i32, _height i32) (screen Screen) {
-  screen := Screen{
-    id: _id,
-    dimensions: dimensions_pkg.newDimensions(_width, _height)}
+  screen.id = _id
+  screen.dimensions = dimensions_pkg.newDimensions(_width, _height)
 }
 
 func (screen Screen) setBackground(path str) (screen Screen) {

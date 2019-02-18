@@ -13,6 +13,8 @@ import "textbox_pkg"
 import "layer_pkg"
 import "screen_pkg"
 
+import "phx"
+
 // Keyboard Keys
 var RIGHT_ARROW_KEY i32 = 262
 var LEFT_ARROW_KEY i32 = 263
@@ -82,34 +84,17 @@ func homeScreenKeyboardManager(window str, key i32, scancode i32, action i32, mo
 
 func gameScreenKeyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
 	if bool.and(i32.eq(key, RIGHT_ARROW_KEY), i32.eq(action, 1)) {
-    game.player.direction = RIGHT
+    g_player = PlayerChangeDirection(g_player, phx.DirectionRight())
 
 	} else if bool.and(i32.eq(key, LEFT_ARROW_KEY), i32.eq(action, 1)) {
-		game.player.direction = LEFT
+		g_player = PlayerChangeDirection(g_player, phx.DirectionLeft())
 
 	} else if bool.and(i32.eq(key, DOWN_ARROW_KEY), i32.eq(action, 1)) {
-		game.player.direction = DOWN
+		g_player = PlayerChangeDirection(g_player, phx.DirectionDown())
 
 	} else if bool.and(i32.eq(key, UP_ARROW_KEY), i32.eq(action, 1)) {
-		game.player.direction = UP
+		g_player = PlayerChangeDirection(g_player, phx.DirectionUp())
   }
-}
-
-func canMove(direction i32, line i32, collumn i32) (can_move bool)  {
-  var can_move bool = false
-  if bool.and(i32.eq(direction, UP), bool.not(i32.eq(game.board.cells[i32.sub(line, 1)][collumn].ctype, WALL_CELL))) {
-    can_move = true
-  }
-  if bool.and(i32.eq(direction, DOWN), bool.not(i32.eq(game.board.cells[i32.add(line, 1)][collumn].ctype, WALL_CELL))) {
-    can_move = true
-  }
-  if bool.and(i32.eq(direction, LEFT), bool.not(i32.eq(game.board.cells[line][i32.sub(collumn, 1)].ctype, WALL_CELL))) {
-    can_move = true
-  }
-  if bool.and(i32.eq(direction, RIGHT), bool.not(i32.eq(game.board.cells[line][i32.add(collumn, 1)].ctype, WALL_CELL))) {
-    can_move = true
-  }
-  return can_move
 }
 
 func mouse_button_callback(window str, key i32, action i32, mods i32) () {
@@ -126,9 +111,9 @@ func cursor_pos_callback(window str, xpos f64, ypos f64) () {
 
 var game Game
 
-var x_cells i32 = 28
-var y_cells i32 = 31
-var cells [31][28]Cell
+//var x_cells i32 = 28
+//var y_cells i32 = 31
+//var cells [31][28]Cell
 
 // Item Types
 var PATH_CELL i32 = 3
@@ -138,11 +123,10 @@ var PATH_CELL_WITH_SUPER_POINT i32 = 2
 var TELEPORT_CELL i32 = 4
 var GATE_CELL i32 = 5
 
-func getPosition3D(line i32, collumn i32) (v graphical.Vector3f) {
+func getPosition3D(line i32, collumn i32) (v phx.Vector) {
   x := f32.add(-1.0, f32.add(f32.mul(i32.f32(collumn), CELL_WIDTH), f32.div(CELL_WIDTH, 2.0)))
   y := f32.add(-1.0, f32.add(f32.mul(i32.f32(line), CELL_HEIGHT), f32.div(CELL_HEIGHT, 2.0)))
-	v = graphical.newVector3f(x, y, 0.0)
-  return v
+	v = phx.NewVector(x, y, 0.0)
 }
 
 func main () () {
@@ -178,7 +162,7 @@ func main () () {
 
 		// Game screen
 		} else if current_screen == 1 {
-			for j:=0; j<len(screens[1].layers); j++ {
+			for j=0; j<len(screens[1].layers); j++ {
 				if screens[1].layers[j].pending_callback {
 		      screens[1].layers[j].pending_callback = false
 
@@ -186,16 +170,16 @@ func main () () {
 						current_screen = 2
 					}
 					// FIXME @galah4d redirect to home screen, OpenGl crashes.
-					/*else if str.eq(screens[2].layers[j].callback_id, "exit-button") {
-						current_screen = 0
-					}*/
+					//else if str.eq(screens[2].layers[j].callback_id, "exit-button") {
+					//	current_screen = 0
+					//}
 		    }
 			}
 			game = game.update()
 
 		// Pause screen
 		} else if current_screen == 2 {
-			for j:=0; j<len(screens[2].layers); j++ {
+			for j=0; j<len(screens[2].layers); j++ {
 				if screens[2].layers[j].pending_callback {
 		      screens[2].layers[j].pending_callback = false
 

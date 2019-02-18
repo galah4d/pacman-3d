@@ -3,8 +3,10 @@ package graphical
 import "gl"
 import "glfw"
 
+import "phx"
+
 type SphereGeometry struct {
-	position Vector3f
+	position phx.Vector
   radius f32
 	segments i32
 	rotation Vector3f
@@ -12,13 +14,11 @@ type SphereGeometry struct {
 }
 
 func newSphereGeometry(radius f32, segments i32, material Material) (sg SphereGeometry) {
-	sg = SphereGeometry{
-		position:newVector3f(0.0, 0.0, 0.0),
-		radius: radius,
-		segments: segments,
-		rotation:newVector3f(0.0, 0.0, 0.0),
-		material:material}
-	return sg
+	sg.position = phx.NewVector(0.0, 0.0, 0.0)
+	sg.radius = radius
+	sg.segments = segments
+	sg.rotation = newVector3f(0.0, 0.0, 0.0)
+	sg.material = material
 }
 
 var PI f32 = 3.14

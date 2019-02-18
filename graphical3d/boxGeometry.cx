@@ -3,20 +3,20 @@ package graphical
 import "gl"
 import "glfw"
 
+import "phx"
+
 type BoxGeometry struct {
-	position Vector3f
+	position phx.Vector
 	dimensions Vector3f
 	rotation Vector3f
 	materials [6]Material
 }
 
 func newBoxGeometry(width f32, heigth f32, depth f32, materials [6]Material) (bg BoxGeometry) {
-	bg = BoxGeometry{
-		position:newVector3f(0.0, 0.0, 0.0),
-		dimensions:newVector3f(width, heigth, depth),
-		rotation:newVector3f(0.0, 0.0, 0.0),
-		materials: materials}
-	return bg
+	bg.position = phx.NewVector(0.0, 0.0, 0.0)
+	bg.dimensions = newVector3f(width, heigth, depth)
+	bg.rotation = newVector3f(0.0, 0.0, 0.0)
+	bg.materials = materials
 }
 
 func (bg BoxGeometry) render () {

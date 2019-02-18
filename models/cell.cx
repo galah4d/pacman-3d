@@ -2,10 +2,10 @@ package main
 
 import "graphical"
 
-var CELL_TYPE_WALL i32 = 1
-var CELL_TYPE_PATH i32 = 2
-var CELL_TYPE_GATE i32 = 3
-var CELL_TYPE_TELEPORT i32 = 4
+var CELL_TYPE_WALL i32 = 0
+var CELL_TYPE_PATH i32 = 1
+var CELL_TYPE_GATE i32 = 2
+var CELL_TYPE_TELEPORT i32 = 3
 
 var CELL_WIDTH f32 = 0.07
 var CELL_HEIGHT f32 = 0.07
@@ -15,14 +15,24 @@ var wall_cell_textures [3]i32
 var gate_cell_textures [3]i32
 var cell_textures [3]i32
 
-func loadCellTextures () {
-  cell_textures[0] = gl.NewTexture("textures/walls/wall.jpg")
-  cell_textures[1] = gl.NewTexture("textures/walls/wall2.jpg")
-  cell_textures[2] = gl.NewTexture("textures/walls/wall3.jpg")
+var CELL_TEXTURES [12]i32
 
-  gate_cell_textures[0] = gl.NewTexture("textures/cells/gate1.jpg")
-  gate_cell_textures[1] = gl.NewTexture("textures/cells/gate1.jpg")
-  gate_cell_textures[2] = gl.NewTexture("textures/cells/gate1.jpg")
+func loadCellTextures () {
+  CELL_TEXTURES[0] = gl.NewTexture("textures/walls/wall.jpg")
+  CELL_TEXTURES[1] = gl.NewTexture("textures/walls/wall2.jpg")
+  CELL_TEXTURES[2] = gl.NewTexture("textures/walls/wall3.jpg")
+
+  CELL_TEXTURES[3] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[4] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[5] = gl.NewTexture("textures/cells/gate1.jpg")
+
+  CELL_TEXTURES[6] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[7] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[8] = gl.NewTexture("textures/cells/gate1.jpg")
+
+  CELL_TEXTURES[9] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[10] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[11] = gl.NewTexture("textures/cells/gate1.jpg")
 }
 
 type Cell struct {
@@ -32,93 +42,40 @@ type Cell struct {
 	geometry graphical.BoxGeometry
 }
 
-func newCell (line i32, collumn i32, ct i32) (cell Cell) {
-  if ct == WALL_CELL {
-    cell = newWallCell(line, collumn)
-  }
-	return cell
-}
-
-func newWallCell(line i32, collumn i32) (cell Cell) {
+func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
   var materials [6]graphical.Material
   var mat graphical.Material
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(cell_textures[0])
+  mat = mat.setTexture(CELL_TEXTURES[ct*3])
   for i:=0; i<2; i++ {
     materials[i] = mat
   }
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(cell_textures[1])
+  mat = mat.setTexture(CELL_TEXTURES[ct*3 + 1])
   for i=2; i<4; i++ {
     materials[i] = mat
   }
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(cell_textures[2])
+  mat = mat.setTexture(CELL_TEXTURES[ct*3 + 2])
   for i=4; i<6; i++ {
     materials[i] = mat
   }
 
-  cell = Cell{
-    index_x: collumn,
-    index_y: line,
-    ctype: CELL_TYPE_WALL,
-		geometry: graphical.newBoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH, materials)}
+  cell.index_x = collumn
+  cell.index_y = line
+  cell.ctype = ct
+	cell.geometry = graphical.newBoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH, materials)
 	cell.geometry.position = getPosition3D(line, collumn)
 
   return cell
 }
 
-func newPathCell(line i32, collumn i32) (cell Cell) {
-  var materials [6]graphical.Material
-
-  cell = Cell{
-    index_x: collumn,
-    index_y: collumn,
-    ctype: CELL_TYPE_PATH,
-    geometry: graphical.newBoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH, materials)}
-  cell.geometry.position = getPosition3D(line, collumn)
-
-  return cell
-}
-
-func newGateCell(line i32, collumn i32) (cell Cell) {
-  var materials [6]graphical.Material
-  var mat graphical.Material
-
-  mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(gate_cell_textures[0])
-  for i:=0; i<2; i++ {
-    materials[i] = mat
-  }
-
-  mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(gate_cell_textures[1])
-  for i=2; i<4; i++ {
-    materials[i] = mat
-  }
-
-  mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(gate_cell_textures[2])
-  for i=4; i<6; i++ {
-    materials[i] = mat
-  }
-
-  cell = Cell{
-    index_x: collumn,
-    index_y: line,
-    ctype: CELL_TYPE_WALL,
-		geometry: graphical.newBoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH, materials)}
-	cell.geometry.position = getPosition3D(line, collumn)
-
-  return cell
-}
-
-func (cell Cell) render () {
+func CellRender(cell Cell) {
   var bg graphical.BoxGeometry
-  if cell.ctype == CELL_TYPE_WALL {
+  if cell.ctype != CELL_TYPE_PATH {
     bg = cell.geometry
     bg.render()
   }

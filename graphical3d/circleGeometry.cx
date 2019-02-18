@@ -15,14 +15,12 @@ type CircleGeometry struct {
 }
 
 func newCircleGeometry(radius f32, segments i32, material Material) (cg CircleGeometry) {
-  cg = CircleGeometry{
-    position:newVector3f(0.0, 0.0, 0.0),
-		radius: radius,
-		segments: segments,
-		rotation:newVector3f(0.0, 0.0, 0.0),
-		material:material}
+  cg.position = newVector3f(0.0, 0.0, 0.0)
+	cg.radius = radius
+	cg.segments = segments
+	cg.rotation = newVector3f(0.0, 0.0, 0.0)
+	cg.material = material
   cg.theta_length = f32.div(2.0*PI, i32.f32(cg.segments))
-  return cg
 }
 
 func (cg CircleGeometry) render () {

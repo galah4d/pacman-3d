@@ -3,10 +3,12 @@ package graphical
 import "gl"
 import "glfw"
 
+import "phx"
+
 var PI f32 = 3.1415
 
 type CylinderGeometry struct {
-	position Vector3f
+	position phx.Vector
   height f32
   radius f32
 	theta_length f32
@@ -16,15 +18,13 @@ type CylinderGeometry struct {
 }
 
 func newCylinderGeometry(height f32, radius f32, segments i32, material Material) (cg CylinderGeometry) {
-	cg = CylinderGeometry{
-		position:newVector3f(0.0, 0.0, 0.0),
-    height: height,
-    radius: radius,
-		segments: segments,
-		rotation:newVector3f(0.0, 0.0, 0.0),
-		material:material}
+	cg.position = phx.NewVector(0.0, 0.0, 0.0)
+  cg.height = height
+  cg.radius = radius
+	cg.segments = segments
+	cg.rotation = newVector3f(0.0, 0.0, 0.0)
+	cg.material = material
 	cg.theta_length = f32.div(2.0*PI, i32.f32(cg.segments))
-	return cg
 }
 
 func (cg CylinderGeometry) render () {
@@ -59,7 +59,7 @@ func (cg CylinderGeometry) render () {
 
 	gl.BindTexture(gl.TEXTURE_2D, cg.material.texture)
   gl.Begin(gl.TRIANGLE_STRIP);
-  for i:=0; i<=cg.segments; i++ {
+  for i=0; i<=cg.segments; i++ {
     theta = i32.f32(i)*cg.theta_length
     px = cg.radius*f32.cos(theta)
     py = cg.radius*f32.sin(theta)
@@ -73,7 +73,7 @@ func (cg CylinderGeometry) render () {
 
 	gl.BindTexture(gl.TEXTURE_2D, cg.material.texture)
   gl.Begin(gl.TRIANGLE_STRIP);
-  for i:=0; i<=cg.segments; i++ {
+  for i=0; i<=cg.segments; i++ {
     theta = i32.f32(i)*cg.theta_length
     px = cg.radius*f32.cos(theta)
     py = cg.radius*f32.sin(theta)

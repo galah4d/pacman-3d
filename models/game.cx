@@ -2,49 +2,43 @@ package main
 
 import "glfw"
 
-var PLAYER_SPAWN_LINE i32 = 24
-var PLAYER_SPAWN_COLLUMN i32 = 15
+import "phx"
 
-var GHOST_SPAWN_LINE i32 = 13
-var GHOST_SPAWN_COLLUMN i32 = 14
-
-type Game struct {
-  board Board
-  player Player
-  ghosts []Ghost
-
+type Settings struct {
+  // Game settings
   level i32
 
+  // Graphical settings
   rotation_x f32
   rotation_y f32
   rotation_z f32
   scale f32
 }
 
+func initSettings() (settings Settings) {
+  settings.level = 1
+
+  settings.rotation_x = 25.0
+  settings.rotation_y = 0.0
+  settings.rotation_z = 25.0
+  settings.scale = 1.5
+}
+
+type Game struct {
+  settings Settings
+}
+
 func initGame() (game Game) {
-  // Loads all the game textures
-	loadPlayerTextures()
-	loadCellTextures()
-	loadPointTetures()
+  game.settings = initSettings()
 
-  game = Game{
-    board: newBoard(),
-    player: newPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN),
-    level: 1,
-    rotation_x: 25.0,
-    rotation_y: 0.0,
-    rotation_z: 25.0,
-    scale: 1.5}
-  for i:=0; i<4; i++ {
-    //game.ghosts = append(game.ghosts, newGhost(GHOST_SPAWN_LINE, GHOST_SPAWN_COLLUMN, i))
-  }
-
-  return game
+  InitPlayer() // Initializes the player
+  InitGhosts() // Initialize the ghosts
+  InitBoard()
 }
 
 func (game Game) leveUp (game Game, level i32) {
-  game.level = i32.add(game.level, 1)
-  level = game.level
+  game.settings.level = i32.add(game.settings.level, 1)
+  level = game.settings.level
 }
 
 func (game Game) update () (game Game) {
@@ -52,44 +46,34 @@ func (game Game) update () (game Game) {
   time = glfw.GetTime()
 
   // TOFIX @galah4d change update order
-  game.player = game.player.update(time)
+  g_player = PlayerUpdate(g_player, time)
   //game.board = game.board.update(game.player.index_x, game.player.index_y)
-  for i:=0; i<len(game.ghosts); i++ {
-    game.ghosts[i] = game.ghosts[i].update(time, game.player.index_x, game.player.index_y) // TODO @galah4d add player position as arg
+  for i:=0; i<4; i++ {
+    g_ghosts[i] = GhostUpdate(g_ghosts[i], time)
   }
 }
 
 func (game Game) render (program i32) {
   var ratio f64
   ratio = f64.div(1920.0D, 1080.0D) // TODO @galah4d pass as args
-  gl.Ortho(
-    -1.0D*ratio+f32.f64(game.player.geometry.position.x),
-    1.0D*ratio+f32.f64(game.player.geometry.position.x),
-    1.0D+f32.f64(game.player.geometry.position.y),
-    -1.0D+f32.f64(game.player.geometry.position.y),
-    -1.0D,
-    1.0D)
+
+  left := f64.add(f64.mul(-1.0D, ratio), f32.f64(g_player.geometry.position.x))
+  right := f64.add(f64.mul(1.0D, ratio), f32.f64(g_player.geometry.position.x))
+  bottom := f64.add(1.0D, f32.f64(g_player.geometry.position.y))
+  top := f64.add(-1.0D, f32.f64(g_player.geometry.position.y))
+  gl.Ortho(left, right, bottom, top, -1.0D, 1.0D)
 
   // Scales and rotates the scene
-  gl.Scalef(game.scale, game.scale, game.scale);
-  gl.Rotatef(game.rotation_x, 1.0, 0.0, 0.0 );
-  gl.Rotatef(game.rotation_y, 0.0, 1.0, 0.0 );
-  gl.Rotatef(game.rotation_z, 0.0, 0.0, 1.0 );
+  gl.Scalef(game.settings.scale, game.settings.scale, game.settings.scale);
+  gl.Rotatef(game.settings.rotation_x, 1.0, 0.0, 0.0 );
+  gl.Rotatef(game.settings.rotation_y, 0.0, 1.0, 0.0 );
+  gl.Rotatef(game.settings.rotation_z, 0.0, 0.0, 1.0 );
 
   gl.UseProgram(program)
 
-  var board Board
-  board = game.board
-  board.render()
-
-  var player Player
-  player = game.player
-  player.render()
-
-
-  var ghost Ghost
-  for i:=0; i<len(game.ghosts); i++ {
-    ghost = game.ghosts[i]
-    ghost.render()
+  BoardRender(g_board)
+  PlayerRender(g_player)
+  for i:=0; i<4; i++ {
+    GhostRender(g_ghosts[i])
   }
 }
