@@ -333,7 +333,7 @@ func newTextbox(_id str, _x f32, _y f32, _text str, _font str) (textbox Textbox)
 }
 
 func renderTextbox(textbox Textbox) () { // FIXME color overlay
-  gl.Color3f(0.98, 0.98, 0.98)        // FIXME add custom colors
+  gl.Color3f(0.98, 0.98, 0.98)        // FIXME add custom color
   gltext.Printf(
     textbox.font,
     i32.f32(aux_pkg.relative2absoluteX(textbox.position.x, constants_pkg.SCREEN_WIDTH)),

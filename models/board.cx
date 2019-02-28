@@ -36,7 +36,7 @@ func newBoard() (board Board) {
         board.cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
 
       } else if line[j] == CODE_SIMPLE_POINT {
-        //board.simple_points = append(board.simple_points, newSimplePoint(i, j))
+        board.simple_points = append(board.simple_points, newSimplePoint(i, j))
         board.cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
 
       } else if line[j] == CODE_SUPER_POINT {
@@ -60,6 +60,12 @@ func InitBoard() {
   g_board = newBoard()
 }
 
+func BoardUpdate(board Board) (board Board) {
+  for i:=0; i<len(board.super_points); i++ {
+    board.super_points[i] = SuperPointUpdate(board.super_points[i])
+  }
+}
+
 func BoardRender(board Board) {
   for i:=0; i<BOARD_LINES; i++ {
     for j:=0; j<BOARD_COLLUMNS; j++ {
@@ -67,19 +73,11 @@ func BoardRender(board Board) {
     }
   }
 
-  /*
-  var simple_point SimplePoint
-  i32.print(len(board.simple_points))
-
-  for i=0; i<len(board.simple_points); i++ {
-    simple_point = board.simple_points[i]
-    simple_point.render()
-  }
-  */
-  var super_point SuperPoint
+  /*for i:=0; i<len(board.simple_points); i++ {
+    SimplePointRender(board.simple_points[i])
+  }*/
   for i=0; i<len(board.super_points); i++ {
-    super_point = board.super_points[i]
-    super_point.render()
+    SuperPointRender(board.super_points[i])
   }
 }
 

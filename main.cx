@@ -83,6 +83,7 @@ func homeScreenKeyboardManager(window str, key i32, scancode i32, action i32, mo
 }
 
 func gameScreenKeyboardManager(window str, key i32, scancode i32, action i32, mods i32) () {
+	// Movement keys
 	if bool.and(i32.eq(key, RIGHT_ARROW_KEY), i32.eq(action, 1)) {
     g_player = PlayerChangeDirection(g_player, phx.DirectionRight())
 
@@ -95,6 +96,14 @@ func gameScreenKeyboardManager(window str, key i32, scancode i32, action i32, mo
 	} else if bool.and(i32.eq(key, UP_ARROW_KEY), i32.eq(action, 1)) {
 		g_player = PlayerChangeDirection(g_player, phx.DirectionUp())
   }
+
+	// Game mode selection keys
+	if bool.and(i32.eq(key, 50), i32.eq(action, 1)) {
+    game = GameSet2D(game)
+
+	} else if bool.and(i32.eq(key, 51), i32.eq(action, 1)) {
+		game = GameSet3D(game)
+	}
 }
 
 func mouse_button_callback(window str, key i32, action i32, mods i32) () {
@@ -169,10 +178,6 @@ func main () () {
 					if str.eq(screens[1].layers[j].callback_id, "pause-button") {
 						current_screen = 2
 					}
-					// FIXME @galah4d redirect to home screen, OpenGl crashes.
-					//else if str.eq(screens[2].layers[j].callback_id, "exit-button") {
-					//	current_screen = 0
-					//}
 		    }
 			}
 			game = game.update()

@@ -26,6 +26,8 @@ type Player struct {
   next_direction phx.Direction
   velocity f32
 
+  lives i32
+
   geometry graphical.SphereGeometry
   materials [2]graphical.Material
   current_material i32
@@ -34,7 +36,7 @@ type Player struct {
   movement_timer f64
 }
 
-func NewPlayer (line i32, collumn i32) (pl Player) {
+func NewPlayer (line i32, collumn i32, lives i32) (pl Player) {
   var materials [2]graphical.Material
   materials[0] = graphical.newMaterial(1.0, 1.0, 0.0)
   materials[0] = materials[0].setTexture(player_textures[0])
@@ -48,7 +50,9 @@ func NewPlayer (line i32, collumn i32) (pl Player) {
   pl.next_direction = phx.DirectionRight()
   pl.velocity = 0.005
 
-  pl.geometry = graphical.newSphereGeometry(PLAYER_RADIUS, 10, materials[0])
+  pl.lives = lives
+
+  pl.geometry = graphical.newSphereGeometry(PLAYER_RADIUS, 7, materials[0])
   pl.materials = materials
   pl.current_material = 0
   pl.last_update = 0.0D
@@ -60,7 +64,7 @@ func NewPlayer (line i32, collumn i32) (pl Player) {
 
 func InitPlayer() {
   loadPlayerTextures()
-  g_player = NewPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN)
+  g_player = NewPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN, 3)
 }
 
 func loadPlayerTextures () {
@@ -88,7 +92,12 @@ func PlayerUpdate (player Player, time f64) (player Player) {
   }
 
   // Rotates the player
-  //player.geometry.rotation.y = i32.f32(player.direction_d)*(90.0)
+  if player.direction.vector.x == -1.0 {
+    player.geometry.rotation.y = 180.0
+  } else {
+    player.geometry.rotation.y = player.direction.vector.y*-90.0
+  }
+
   return player
 }
 
@@ -125,6 +134,15 @@ func PlayerCanMove(player Player, direction phx.Direction) (out bool) {
   new_collumn := i32.add(player.index_x, f32.i32(direction.vector.x))
 
   out = i32.eq(g_board.cells[new_line][new_collumn].ctype, CELL_TYPE_PATH)
+}
+
+func PlayerKill(player Player) (player Player, gameOver bool) {
+  if player.lives > 0 {
+    player = NewPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN, i32.sub(player.lives, 1))
+    gameOver = false
+  } else {
+    gameOver = true
+  }
 }
 
 func PlayerRender(player Player) {

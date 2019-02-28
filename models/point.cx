@@ -65,7 +65,7 @@ func (point SimplePoint) update (player_x i32, player_y i32, time f64) (point Si
   return point
 }
 
-func (point SimplePoint) render () {
+func SimplePointRender(point SimplePoint) {
   var bg graphical.BoxGeometry
   bg = point.geometry
   if point.point.active {
@@ -89,12 +89,13 @@ func newSuperPoint(line i32, collumn i32) (point SuperPoint) {
   point.geometry.rotation = graphical.newVector3f(90.0, 0.0, 0.0)
 }
 
-func (point SuperPoint) update (player_x i32, player_y i32, time f64) (point SuperPoint) {
-  point.point = point.point.update(player_x, player_y, time)
-  return point
+func SuperPointUpdate (point SuperPoint) (point SuperPoint) {
+  if g_player.index_x == point.point.index_x && g_player.index_y == point.point.index_y {
+    point.point.active = false
+  }
 }
 
-func (point SuperPoint) render () {
+func SuperPointRender(point SuperPoint) {
   var cg graphical.CylinderGeometry
   cg = point.geometry
   if point.point.active {
