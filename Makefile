@@ -11,6 +11,7 @@ run:
 		graphical3d/cylinderGeometry.cx\
 		graphical3d/circleGeometry.cx\
 		\
+		models/timer.cx\
 		models/cell.cx\
 		models/point.cx\
 		models/board.cx\

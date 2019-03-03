@@ -36,7 +36,8 @@ var POKEY_SCATTER_COLLUMN i32 = 1
 // Must be initialized
 var SCATTER_TARGET [4]phx.Vector
 
-var GHOST_TEXTURES [6]i32
+var GHOST_TEXTURES [4]i32
+var GHOST_FRIGHTENED_TEXTURES [2]i32
 
 var GHOST_CHASE_TIMER f64 = 0.0D
 var GHOST_CHASE_LIMIT f64 = 5.0D
@@ -44,10 +45,7 @@ var GHOST_SCATTER_TIMER f64 = 0.0D
 var GHOST_SCATTER_LIMIT f64 = 5.0D
 
 var GHOST_MOVEMENT_TIMER f64 = 0.001D
-//var GHOST_RELEASE_TIMER f64 = 5.0D
-var GHOST_FRIGHTENED_TIMER f64 = 10.0D
-
-var GHOST_RELEASE_TIMER [4]f64 = [4]f64{5.0D, 10.0D, 15.0D, 20.0D}
+//var GHOST_FRIGHTENED_TIMER f64 = 10.0D
 
 var g_ghosts[4]Ghost
 
@@ -64,9 +62,11 @@ type Ghost struct {
   head_geometry graphical.SphereGeometry
   body_geometry graphical.CylinderGeometry
 
-  movement_timer f64
-  release_timer f64
-  frightened_timer f64
+  movement_timer Timer
+  frightened_timer Timer
+  animation_timer Timer
+
+  current_texture i32
 }
 
 func NewGhost(line i32, collumn i32, gtype i32) (ghost Ghost) {
@@ -77,9 +77,11 @@ func NewGhost(line i32, collumn i32, gtype i32) (ghost Ghost) {
 
   ghost.velocity = 0.005
 
-  ghost.movement_timer = 0.0D
-  ghost.release_timer = GHOST_RELEASE_TIMER[gtype]
-  ghost.frightened_timer = 0.0D
+  ghost.movement_timer = NewTimer(GHOST_MOVEMENT_TIMER)
+  ghost.frightened_timer = NewTimer(7.0D)
+  ghost.animation_timer = NewTimer(0.25D)
+
+  ghost.current_texture = 0
 
   var mat graphical.Material
   mat = graphical.newMaterial(1.0, 0.0, 0.0) // Red color
@@ -109,20 +111,29 @@ func InitGhosts() {
 
 // Loads the ghosts textures
 func loadGhostTextures () {
-  GHOST_TEXTURES[GHOST_TYPE_SHADOW] = gl.NewTexture("textures/ghosts/ghost.jpg")
+  GHOST_TEXTURES[GHOST_TYPE_SHADOW] = gl.NewTexture("textures/ghosts/ghost1.png")
   GHOST_TEXTURES[GHOST_TYPE_SPEEDY] = gl.NewTexture("textures/ghosts/ghost2.png")
-  GHOST_TEXTURES[GHOST_TYPE_BASHFUL] = gl.NewTexture("textures/ghosts/ghost3.jpg")
-  GHOST_TEXTURES[GHOST_TYPE_POKEY] = gl.NewTexture("textures/ghosts/ghost4.jpg")
+  GHOST_TEXTURES[GHOST_TYPE_BASHFUL] = gl.NewTexture("textures/ghosts/ghost3.png")
+  GHOST_TEXTURES[GHOST_TYPE_POKEY] = gl.NewTexture("textures/ghosts/ghost4.png")
 
-  GHOST_TEXTURES[5] = gl.NewTexture("textures/ghosts/ghost-frt1.png")
-  GHOST_TEXTURES[6] = gl.NewTexture("textures/ghosts/ghost-frt1.png")
+  GHOST_FRIGHTENED_TEXTURES[0] = gl.NewTexture("textures/ghosts/ghost-frt1.png")
+  GHOST_FRIGHTENED_TEXTURES[1] = gl.NewTexture("textures/ghosts/ghost-frt2.png")
 }
 
 func GhostUpdate(ghost Ghost, time f64) (ghost Ghost) {
   // Moves the ghost
-  if GHOST_MOVEMENT_TIMER <= f64.sub(time, ghost.movement_timer) {
+  if TimerOver(ghost.movement_timer, time) {
     ghost = GhostMove(ghost, g_player.index_y, g_player.index_x)
-    ghost.movement_timer = time
+    ghost.movement_timer = TimerReset(ghost.movement_timer, time)
+  }
+
+  // Frightened ghost animation
+  if ghost.mode == GHOST_MODE_FRIGHTENED && TimerOver(ghost.frightened_timer, time) {
+    if TimerOver(ghost.animation_timer, time) {
+      ghost.current_texture = i32.add(ghost.current_texture, 1) % 2
+      ghost.head_geometry.material.texture = GHOST_FRIGHTENED_TEXTURES[ghost.current_texture]
+      ghost.animation_timer = TimerReset(ghost.animation_timer, time)
+    }
   }
 
   // Rotates the ghost
@@ -144,24 +155,28 @@ func GhostRelease(ghost Ghost) (ghost Ghost) {
 }
 
 func GhostIncarcerate(ghost Ghost, time f64) (ghost Ghost) {
-  ghost.mode = GHOST_MODE_IN_HOUSE
-
-  ghost.index_x = 14
-  ghost.index_y = 13
-
-  ghost.head_geometry.position = getPosition3D(ghost.index_y, ghost.index_x)
-  ghost.direction = calculateGhostDirection(ghost, g_player.index_y, g_player.index_y)
-
-  ghost.release_timer = time
+  ghost = NewGhost(GHOST_SPAWN_LINE, GHOST_SPAWN_COLLUMN, ghost.gtype)
 }
 
 func GhostFrighten(ghost Ghost, time f64) (ghost Ghost) {
   ghost.mode = GHOST_MODE_FRIGHTENED
+
+  ghost.index_x = i32.add(ghost.index_x, f32.i32(ghost.direction.vector.x))
+  ghost.index_y = i32.add(ghost.index_y, f32.i32(ghost.direction.vector.y))
   ghost.direction = phx.DirectionOpposite(ghost.direction)
 
-  ghost.head_geometry.material.texture = GHOST_TEXTURES[5]
+  ghost.head_geometry.material.texture = GHOST_FRIGHTENED_TEXTURES[0]
+  ghost.current_texture = 0
 
-  ghost.frightened_timer = time
+  ghost.frightened_timer = TimerReset(ghost.frightened_timer, time)
+}
+
+func GhostEncourage(ghost Ghost, time f64) (ghost Ghost) {
+  if ghost.mode != GHOST_MODE_FRIGHTENED {
+    return ghost;
+  }
+  ghost.mode = GHOST_MODE_CHASE
+  ghost.head_geometry.material.texture = GHOST_TEXTURES[ghost.gtype]
 }
 
 func GhostMove(ghost Ghost, player_collumn i32, player_line i32) (ghost Ghost) {

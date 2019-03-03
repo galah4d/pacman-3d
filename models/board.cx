@@ -66,16 +66,23 @@ func BoardUpdate(board Board) (board Board) {
   }
 }
 
-func BoardRender(board Board) {
+func BoardRender(board Board, game_mode str) {
+  var time f64
+
+	time = glfw.GetTime()
   for i:=0; i<BOARD_LINES; i++ {
     for j:=0; j<BOARD_COLLUMNS; j++ {
-			CellRender(board.cells[i][j])
+			CellRender(board.cells[i][j], game_mode)
     }
   }
+  printf("[DEGUG] Time to render board:  %f\n", f64.sub(glfw.GetTime(), time))
 
-  /*for i:=0; i<len(board.simple_points); i++ {
+  /*time = glfw.GetTime()
+  for i=0; i<len(board.simple_points); i++ {
     SimplePointRender(board.simple_points[i])
-  }*/
+  }
+  printf("[DEGUG] Time to render points: %f\n", f64.sub(glfw.GetTime(), time))*/
+
   for i=0; i<len(board.super_points); i++ {
     SuperPointRender(board.super_points[i])
   }

@@ -73,10 +73,12 @@ func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
   return cell
 }
 
-func CellRender(cell Cell) {
-  var bg graphical.BoxGeometry
+func CellRender(cell Cell, mode str) {
   if cell.ctype != CELL_TYPE_PATH {
-    bg = cell.geometry
-    bg.render()
+    if mode == "2D" {
+      graphical.BoxGeometryRender(cell.geometry, false, false, false, false, true, false)
+    } else if mode == "3D" {
+      graphical.BoxGeometryRender(cell.geometry, true, false, false, true, true, false)
+    }
   }
 }
