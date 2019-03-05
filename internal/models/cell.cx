@@ -18,21 +18,21 @@ var cell_textures [3]i32
 var CELL_TEXTURES [12]i32
 
 func loadCellTextures () {
-  CELL_TEXTURES[0] = gl.NewTexture("textures/walls/wall.jpg")
-  CELL_TEXTURES[1] = gl.NewTexture("textures/walls/wall2.jpg")
-  CELL_TEXTURES[2] = gl.NewTexture("textures/walls/wall3.jpg")
+  CELL_TEXTURES[0] = gl.NewTexture("assets/textures/walls/skycoin-wall1.png")
+  CELL_TEXTURES[1] = gl.NewTexture("assets/textures/walls/skycoin-wall2.png")
+  CELL_TEXTURES[2] = gl.NewTexture("assets/textures/walls/skycoin-wall3.png")
 
-  CELL_TEXTURES[3] = gl.NewTexture("textures/cells/gate1.jpg")
-  CELL_TEXTURES[4] = gl.NewTexture("textures/cells/gate1.jpg")
-  CELL_TEXTURES[5] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[3] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  CELL_TEXTURES[4] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  CELL_TEXTURES[5] = gl.NewTexture("assets/textures/cells/gate1.jpg")
 
-  CELL_TEXTURES[6] = gl.NewTexture("textures/cells/gate1.jpg")
-  CELL_TEXTURES[7] = gl.NewTexture("textures/cells/gate1.jpg")
-  CELL_TEXTURES[8] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[6] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  CELL_TEXTURES[7] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  CELL_TEXTURES[8] = gl.NewTexture("assets/textures/cells/gate1.jpg")
 
-  CELL_TEXTURES[9] = gl.NewTexture("textures/cells/gate1.jpg")
-  CELL_TEXTURES[10] = gl.NewTexture("textures/cells/gate1.jpg")
-  CELL_TEXTURES[11] = gl.NewTexture("textures/cells/gate1.jpg")
+  CELL_TEXTURES[9] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  CELL_TEXTURES[10] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  CELL_TEXTURES[11] = gl.NewTexture("assets/textures/cells/gate1.jpg")
 }
 
 type Cell struct {

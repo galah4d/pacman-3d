@@ -16,8 +16,8 @@ var point_textures [2]i32
 var g_simple_points[240] SimplePoint
 
 func loadPointTetures () {
-  point_textures[0] = gl.NewTexture("textures/points/simple-point-texture.jpg")
-  point_textures[1] = gl.NewTexture("textures/points/super-point-texture.jpg")
+  point_textures[0] = gl.NewTexture("assets/textures/points/simple-point-texture.png")
+  point_textures[1] = gl.NewTexture("assets/textures/points/super-point-texture.jpg")
 }
 
 type Point struct {
@@ -62,6 +62,8 @@ func newSimplePoint(line i32, collumn i32) (point SimplePoint) {
 }
 
 func InitSimplePoints() {
+  loadPointTetures()
+  
   var line [28]i32
 
   simple_points_count := 0

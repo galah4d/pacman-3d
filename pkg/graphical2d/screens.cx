@@ -44,7 +44,7 @@ func newHomeScreen(screen_width i32, screen_height i32) (home_screen screen_pkg.
 
 func newGameScreen(screen_width i32, screen_height i32) (game_screen screen_pkg.Screen) {
 	game_screen = screen_pkg.newScreen("game-screen", screen_width, screen_height)
-	game_screen = game_screen.setBackground("static/texture/screen/blue-background.jpg")
+	game_screen = game_screen.setBackground("static/texture/screen/classic-background.jpg")
 
 	var level_layer layer_pkg.Layer
 	level_layer = layer_pkg.newLayer("level-layer", 0.0, 0.0, i32.div(screen_width, 2), i32.div(screen_height, 2), true, true)

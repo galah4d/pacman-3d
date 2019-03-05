@@ -145,7 +145,7 @@ func main () () {
 
 	// Initializes all the screens
 	screens[0] = newHomeScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
-	screens[1] = newGameScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+	screens[1] = NewGameScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[2] = newPauseScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[3] = newSettingsScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
 	screens[4] = newGraphicalSettingsScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -164,7 +164,7 @@ func main () () {
 					if str.eq(screens[0].layers[j].callback_id, "play-button") {
 						current_screen = 1
 					} else if str.eq(screens[0].layers[j].callback_id, "settings-button") {
-						current_screen = 3
+						current_screen = 0//3
 					}
 		    }
 			}

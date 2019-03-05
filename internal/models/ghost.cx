@@ -111,13 +111,13 @@ func InitGhosts() {
 
 // Loads the ghosts textures
 func loadGhostTextures () {
-  GHOST_TEXTURES[GHOST_TYPE_SHADOW] = gl.NewTexture("textures/ghosts/ghost1.png")
-  GHOST_TEXTURES[GHOST_TYPE_SPEEDY] = gl.NewTexture("textures/ghosts/ghost2.png")
-  GHOST_TEXTURES[GHOST_TYPE_BASHFUL] = gl.NewTexture("textures/ghosts/ghost3.png")
-  GHOST_TEXTURES[GHOST_TYPE_POKEY] = gl.NewTexture("textures/ghosts/ghost4.png")
+  GHOST_TEXTURES[GHOST_TYPE_SHADOW] = gl.NewTexture("assets/textures/ghosts/ghost1.png")
+  GHOST_TEXTURES[GHOST_TYPE_SPEEDY] = gl.NewTexture("assets/textures/ghosts/ghost2.png")
+  GHOST_TEXTURES[GHOST_TYPE_BASHFUL] = gl.NewTexture("assets/textures/ghosts/ghost3.png")
+  GHOST_TEXTURES[GHOST_TYPE_POKEY] = gl.NewTexture("assets/textures/ghosts/ghost4.png")
 
-  GHOST_FRIGHTENED_TEXTURES[0] = gl.NewTexture("textures/ghosts/ghost-frt1.png")
-  GHOST_FRIGHTENED_TEXTURES[1] = gl.NewTexture("textures/ghosts/ghost-frt2.png")
+  GHOST_FRIGHTENED_TEXTURES[0] = gl.NewTexture("assets/textures/ghosts/ghost-frt1.png")
+  GHOST_FRIGHTENED_TEXTURES[1] = gl.NewTexture("assets/textures/ghosts/ghost-frt2.png")
 }
 
 func GhostUpdate(ghost Ghost, time f64) (ghost Ghost) {

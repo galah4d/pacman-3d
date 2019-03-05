@@ -68,8 +68,8 @@ func InitPlayer() {
 }
 
 func loadPlayerTextures () {
-  player_textures[0] = gl.NewTexture("textures/player/pacman.jpg")
-  player_textures[1] = gl.NewTexture("textures/player/pacman2.jpg")
+  player_textures[0] = gl.NewTexture("assets/textures/player/pacman.png")
+  player_textures[1] = gl.NewTexture("assets/textures/player/pacman2.png")
 }
 
 func PlayerUpdate (player Player, time f64) (player Player) {
