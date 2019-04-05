@@ -15,24 +15,33 @@ var wall_cell_textures [3]i32
 var gate_cell_textures [3]i32
 var cell_textures [3]i32
 
-var CELL_TEXTURES [12]i32
+var THEMES_COUNT i32 = 3
+var CELL_TEXTURES []i32
 
-func loadCellTextures () {
-  CELL_TEXTURES[0] = gl.NewTexture("assets/textures/walls/skycoin-wall1.png")
-  CELL_TEXTURES[1] = gl.NewTexture("assets/textures/walls/skycoin-wall2.png")
-  CELL_TEXTURES[2] = gl.NewTexture("assets/textures/walls/skycoin-wall3.png")
+func loadCellTextures (board_theme i32) {
+  // Wall textures
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
 
-  CELL_TEXTURES[3] = gl.NewTexture("assets/textures/cells/gate1.jpg")
-  CELL_TEXTURES[4] = gl.NewTexture("assets/textures/cells/gate1.jpg")
-  CELL_TEXTURES[5] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  // Path textures
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
 
-  CELL_TEXTURES[6] = gl.NewTexture("assets/textures/cells/gate1.jpg")
-  CELL_TEXTURES[7] = gl.NewTexture("assets/textures/cells/gate1.jpg")
-  CELL_TEXTURES[8] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  // Gate textures
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
 
-  CELL_TEXTURES[9] = gl.NewTexture("assets/textures/cells/gate1.jpg")
-  CELL_TEXTURES[10] = gl.NewTexture("assets/textures/cells/gate1.jpg")
-  CELL_TEXTURES[11] = gl.NewTexture("assets/textures/cells/gate1.jpg")
+  // teleport textures
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
+  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
 }
 
 type Cell struct {
@@ -47,19 +56,19 @@ func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
   var mat graphical.Material
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(CELL_TEXTURES[ct*3])
+  mat = mat.setTexture(CELL_TEXTURES[ct*4])
   for i:=0; i<2; i++ {
     materials[i] = mat
   }
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(CELL_TEXTURES[ct*3 + 1])
+  mat = mat.setTexture(CELL_TEXTURES[ct*4 + 1])
   for i=2; i<4; i++ {
     materials[i] = mat
   }
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(CELL_TEXTURES[ct*3 + 2])
+  mat = mat.setTexture(CELL_TEXTURES[ct*4 + 2])
   for i=4; i<6; i++ {
     materials[i] = mat
   }
@@ -69,6 +78,7 @@ func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
   cell.ctype = ct
 	cell.geometry = graphical.newBoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH, materials)
 	cell.geometry.position = getPosition3D(line, collumn)
+  cell.geometry.rotation.x = -90.0
 
   return cell
 }
@@ -76,9 +86,9 @@ func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
 func CellRender(cell Cell, mode str) {
   if cell.ctype != CELL_TYPE_PATH {
     if mode == "2D" {
-      graphical.BoxGeometryRender(cell.geometry, false, false, false, false, true, false)
+      graphical.BoxGeometryRender(cell.geometry, false, true, false, false, false, false)
     } else if mode == "3D" {
-      graphical.BoxGeometryRender(cell.geometry, true, false, false, true, true, false)
+      graphical.BoxGeometryRender(cell.geometry, false, true, false, true, true, false)
     }
   }
 }

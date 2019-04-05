@@ -460,6 +460,10 @@ func (layer Layer) addTextbox (textbox Textbox) (layer Layer) {
   layer.textboxes = append(layer.textboxes, textbox)
 }
 
+func AddTextbox(layer Layer, textbox Textbox) (layer Layer) {
+  layer.textboxes = append(layer.textboxes, textbox)
+}
+
 func (layer Layer) addSpinbox (spinbox Spinbox) (layer Layer) {
   layer.spinboxes = append(layer.spinboxes, spinbox)
 }
@@ -540,6 +544,70 @@ func renderLayer(layer Layer) (){
 }
 
 
+package slider_pkg
+
+import "gl"
+
+import "layer_pkg"
+
+type Slider struct {
+  id str
+
+  current_slide i32
+  slides []layer_pkg.Layer
+}
+
+func NewSlider(id str) (slider Slider)  {
+  slider.id = id
+}
+
+func AddSlide(slider Slider, slide layer_pkg.Layer) (slider Slider) {
+  slider.slides = append(slider.slides, slide)
+  if len(slider.slides) == 1 {
+    slider.current_slide = 0
+  }
+}
+
+func NextSlide(slider Slider) (slider Slider) {
+  slider.current_slide = slider.current_slide + 1
+  if len(slider.slides) == slider.current_slide {
+    slider.current_slide = 0
+  }
+}
+
+func PrevSlide(slider Slider) (slider Slider) {
+  slider.current_slide = slider.current_slide - 1
+  if slider.current_slide < 0 {
+    slider.current_slide = i32.sub(len(slider.slides), 1)
+  }
+}
+
+func RenderSlider(slider Slider) {
+  layer_pkg.renderLayer(slider.slides[slider.current_slide])
+}
+
+func UpdateSlider(slider Slider, mouse_x i32, mouse_y i32) (slider Slider) {
+  slider.slides[slider.current_slide] = layer_pkg.updateLayer(mouse_x, mouse_y, slider.slides[slider.current_slide])
+}
+
+func ClickSlider(slider Slider) (slider Slider) {
+  for i:=0; i<len(slider.slides); i++ {
+    slider.slides[i] = layer_pkg.clickLayer(slider.slides[i])
+  }
+
+  if slider.slides[slider.current_slide].pending_callback {
+    if slider.slides[slider.current_slide].callback_id == "next-button" {
+      slider = NextSlide(slider)
+      slider.slides[slider.current_slide].pending_callback = false
+
+    } else if slider.slides[slider.current_slide].callback_id == "prev-button" {
+      slider = PrevSlide(slider)
+      slider.slides[slider.current_slide].pending_callback = false
+    }
+  }
+}
+
+
 package screen_pkg
 
 import "gl"
@@ -547,6 +615,7 @@ import "gl"
 import "aux_pkg"
 import "dimensions_pkg"
 import "layer_pkg"
+import "slider_pkg"
 
 type Screen struct {
   id str
@@ -555,6 +624,7 @@ type Screen struct {
   has_background bool
   background i32
   layers []layer_pkg.Layer
+  sliders []slider_pkg.Slider
 }
 
 func newScreen(_id str, _width i32, _height i32) (screen Screen) {
@@ -567,19 +637,56 @@ func (screen Screen) setBackground(path str) (screen Screen) {
   screen.has_background = true
 }
 
+func ScreenSetBackground(screen Screen, path str) (screen Screen) {
+  screen.background = aux_pkg.loadTexture(path)
+  screen.has_background = true
+}
+
 func (screen Screen) addLayer(layer layer_pkg.Layer) (screen Screen) {
   screen.layers = append(screen.layers, layer)
+}
+
+func (screen Screen) addSlider(slider slider_pkg.Slider) (screen Screen) {
+  screen.sliders = append(screen.sliders, slider)
 }
 
 func (screen Screen) update(mouse_x i32, mouse_y i32) (screen Screen) {
   for i:=0; i<len(screen.layers); i++ {
     screen.layers[i] = layer_pkg.updateLayer(mouse_x, mouse_y, screen.layers[i])
   }
+
+  for i=0; i<len(screen.sliders); i++ {
+    screen.sliders[i] = slider_pkg.UpdateSlider(screen.sliders[i], mouse_x, mouse_y)
+  }
+}
+
+func ScreenUpdate(screen Screen, mouse_x i32, mouse_y i32) (screen Screen) {
+  for i:=0; i<len(screen.layers); i++ {
+    screen.layers[i] = layer_pkg.updateLayer(mouse_x, mouse_y, screen.layers[i])
+  }
+
+  for i=0; i<len(screen.sliders); i++ {
+    screen.sliders[i] = slider_pkg.UpdateSlider(screen.sliders[i], mouse_x, mouse_y)
+  }
 }
 
 func clickScreen(screen Screen) (screen Screen) {
   for i:=0; i<len(screen.layers); i++ {
     screen.layers[i] = layer_pkg.clickLayer(screen.layers[i])
+  }
+
+  for i=0; i<len(screen.sliders); i++ {
+    screen.sliders[i] = slider_pkg.ClickSlider(screen.sliders[i])
+  }
+}
+
+func ScreenClick(screen Screen) (screen Screen) {
+  for i:=0; i<len(screen.layers); i++ {
+    screen.layers[i] = layer_pkg.clickLayer(screen.layers[i])
+  }
+
+  for i=0; i<len(screen.sliders); i++ {
+    screen.sliders[i] = slider_pkg.ClickSlider(screen.sliders[i])
   }
 }
 
@@ -604,4 +711,36 @@ func (screen Screen) render() {
   for i:=0; i<len(screen.layers); i++ {
     layer_pkg.renderLayer(screen.layers[i])
   }
+}
+
+func RenderScreen(screen Screen) {
+  gl.LoadIdentity()
+  gl.Disable(gl.DEPTH_TEST)
+
+  if screen.has_background {
+    //gl.LoadIdentity()
+    //gl.Translatef(0.0, 0.0, 0.0)
+
+    gl.BindTexture(gl.TEXTURE_2D, screen.background)
+    gl.Begin(gl.QUADS)
+    gl.TexCoord2d(0.0D, 0.0D);
+    gl.Vertex3f(-1.0, 1.0, 0.0);
+    gl.TexCoord2d(1.0D, 0.0D);
+    gl.Vertex3f(1.0, 1.0, 0.0);
+    gl.TexCoord2d(1.0D, 1.0D);
+    gl.Vertex3f(1.0, -1.0, 0.0);
+    gl.TexCoord2d(0.0D, 1.0D);
+    gl.Vertex3f(-1.0, -1.0, 0.0);
+    gl.End();
+  }
+
+  for i:=0; i<len(screen.layers); i++ {
+    layer_pkg.renderLayer(screen.layers[i])
+  }
+
+  for i=0; i<len(screen.sliders); i++ {
+    slider_pkg.RenderSlider(screen.sliders[i])
+  }
+
+  gl.Enable(gl.DEPTH_TEST)
 }

@@ -2,7 +2,6 @@ run:
 	cx\
 		pkg/graphical2d/graphical.cx\
 		pkg/graphical2d/screens.cx\
-		pkg/graphical2d/screens/game-screen.cx\
 		pkg/phx/vector.cx\
 		pkg/phx/direction.cx\
 		\
@@ -19,5 +18,13 @@ run:
 		internal/models/player.cx\
 		internal/models/ghost.cx\
 		internal/models/game.cx\
+		\
+		internal/domain/scene/scene.cx\
+		internal/domain/scene/game/game-scene.cx\
+		internal/domain/scene/game/home-scene.cx\
+		internal/domain/scene/game/select-player-scene.cx\
+		internal/domain/scene/game/select-board-scene.cx\
+		internal/domain/scene/game/select-points-scene.cx\
+		internal/domain/scene/game/settings-scene.cx\
 		\
 		cmd/main.cx

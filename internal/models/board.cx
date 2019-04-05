@@ -53,9 +53,8 @@ func newBoard() (board Board) {
   }
 }
 
-func InitBoard() {
-	loadCellTextures()
-	loadPointTetures()
+func InitBoard(board_theme i32) {
+	loadCellTextures(board_theme)
 
   g_board = newBoard()
 }
@@ -75,13 +74,6 @@ func BoardRender(board Board, game_mode str) {
 			CellRender(board.cells[i][j], game_mode)
     }
   }
-  printf("[DEGUG] Time to render board:  %f\n", f64.sub(glfw.GetTime(), time))
-
-  /*time = glfw.GetTime()
-  for i=0; i<len(board.simple_points); i++ {
-    SimplePointRender(board.simple_points[i])
-  }
-  printf("[DEGUG] Time to render points: %f\n", f64.sub(glfw.GetTime(), time))*/
 
   for i=0; i<len(board.super_points); i++ {
     SuperPointRender(board.super_points[i])

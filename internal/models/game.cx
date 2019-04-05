@@ -10,6 +10,10 @@ type Settings struct {
   rotation_y f32
   rotation_z f32
   scale f32
+
+  character_skin i32
+  board_theme i32
+  points_theme i32
 }
 
 func initSettings() (settings Settings) {
@@ -17,7 +21,14 @@ func initSettings() (settings Settings) {
   settings.rotation_y = 0.0
   settings.rotation_z = 0.0
   settings.scale = 1.0
+
+  settings.character_skin = 0
+  settings.board_theme = 0
+  settings.points_theme = 0
 }
+
+var OPCODE_NULL i32 = 0
+var OPCODE_PLAYER_KILLED i32 = 1
 
 type Game struct {
   level i32
@@ -46,12 +57,13 @@ func initGame() (game Game) {
   game.ghost_frightned_timer = NewTimer(10.0D)
   game.ghost_chase_timer = NewTimer(30.0D)
   game.ghost_scatter_timer = NewTimer(15.0D)
+}
 
-
-  InitPlayer() // Initializes the player
+func startGame (game Game) (game Game) {
+  InitPlayer(game.settings.character_skin) // Initializes the player
   InitGhosts() // Initialize the ghosts
-  InitSimplePoints()
-  InitBoard()
+  InitSimplePoints(game.settings.points_theme)
+  InitBoard(game.settings.board_theme)
 }
 
 func (game Game) leveUp (game Game, level i32) {
@@ -59,7 +71,9 @@ func (game Game) leveUp (game Game, level i32) {
   level = game.level
 }
 
-func (game Game) update () (game Game) {
+func (game Game) update () (game Game, opcode i32) {
+  opcode = OPCODE_NULL
+
   var time f64
   time = glfw.GetTime()
 
@@ -114,6 +128,7 @@ func (game Game) update () (game Game) {
         g_ghosts[i] = GhostIncarcerate(g_ghosts[i], time)
       } else {
         game, g_player = GameKillPlayer(game, g_player)
+        opcode = OPCODE_PLAYER_KILLED
       }
     }
   }
@@ -185,6 +200,39 @@ func GameOver(game Game) (game Game) {
 }
 
 func (game Game) render (program i32) {
+  var ratio f64
+  ratio = f64.div(1920.0D, 1080.0D) // TODO @galah4d pass as args
+
+  left := f64.add(f64.mul(-1.0D, ratio), f32.f64(g_player.geometry.position.x))
+  right := f64.add(f64.mul(1.0D, ratio), f32.f64(g_player.geometry.position.x))
+  bottom := f64.add(1.0D, f32.f64(g_player.geometry.position.y))
+  top := f64.add(-1.0D, f32.f64(g_player.geometry.position.y))
+  if game.mode == "2D" {
+    gl.Ortho(f64.mul(-1.0D, ratio), f64.mul(1.0D, ratio), 1.0D, -1.0D, -1.0D, 1.0D)
+  } else if game.mode == "3D" {
+    gl.Ortho(left, right, bottom, top, -1.0D, 1.0D)
+  }
+
+
+  // Scales and rotates the scene
+  gl.Scalef(game.settings.scale, game.settings.scale, game.settings.scale);
+  gl.Rotatef(game.settings.rotation_x, 1.0, 0.0, 0.0 );
+  gl.Rotatef(game.settings.rotation_y, 0.0, 1.0, 0.0 );
+  gl.Rotatef(game.settings.rotation_z, 0.0, 0.0, 1.0 );
+
+  gl.UseProgram(program)
+
+  BoardRender(g_board, game.mode)
+  PlayerRender(g_player)
+  for i:=0; i<4; i++ {
+    GhostRender(g_ghosts[i])
+  }
+  for i=0; i<240; i++ {
+    SimplePointRender(g_simple_points[i], game.mode)
+  }
+}
+
+func GameRender(game Game, program i32) {
   var ratio f64
   ratio = f64.div(1920.0D, 1080.0D) // TODO @galah4d pass as args
 

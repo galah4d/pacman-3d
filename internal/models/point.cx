@@ -11,13 +11,14 @@ import "graphical"
 var PATH_CELL_WITH_SIMPLE_POINT i32 = 0
 var PATH_CELL_WITH_SUPER_POINT i32 = 2
 
-var point_textures [2]i32
+var point_textures [3]i32
 
 var g_simple_points[240] SimplePoint
 
-func loadPointTetures () {
-  point_textures[0] = gl.NewTexture("assets/textures/points/simple-point-texture.png")
-  point_textures[1] = gl.NewTexture("assets/textures/points/super-point-texture.jpg")
+func loadPointTetures (points_theme i32) {
+  point_textures[0] = gl.NewTexture(sprintf("assets/textures/points/points-%d/simple-point.png", points_theme))
+  point_textures[1] = gl.NewTexture(sprintf("assets/textures/points/points-%d/super-point.png", points_theme))
+  point_textures[2] = gl.NewTexture(sprintf("assets/textures/points/points-%d/super-point-side.png", points_theme))
 }
 
 type Point struct {
@@ -61,9 +62,9 @@ func newSimplePoint(line i32, collumn i32) (point SimplePoint) {
   point.geometry.rotation = graphical.newVector3f(0.0, 0.0, 0.0)
 }
 
-func InitSimplePoints() {
-  loadPointTetures()
-  
+func InitSimplePoints(points_theme i32) {
+  loadPointTetures(points_theme)
+
   var line [28]i32
 
   simple_points_count := 0
@@ -100,14 +101,22 @@ type SuperPoint struct {
 }
 
 func newSuperPoint(line i32, collumn i32) (point SuperPoint) {
-  var mat graphical.Material
-  mat = graphical.newMaterial(1.0, 1.0, 1.0)
-  mat = mat.setTexture(point_textures[1])
+  var mats [2]graphical.Material
+
+  var mat1 graphical.Material
+  mat1 = graphical.newMaterial(1.0, 1.0, 1.0)
+  mat1 = mat1.setTexture(point_textures[1])
+  mats[0] = mat1
+
+  var mat2 graphical.Material
+  mat2 = graphical.newMaterial(1.0, 1.0, 1.0)
+  mat2 = mat2.setTexture(point_textures[2])
+  mats[1] = mat2
 
   point.point = newPoint(line, collumn)
-  point.geometry = graphical.newCylinderGeometry(0.03, 0.02, 10, mat)
+  point.geometry = graphical.newCylinderGeometry(0.01, 0.02, 10, mats)
   point.geometry.position = getPosition3D(line, collumn)
-  point.geometry.rotation = graphical.newVector3f(90.0, 0.0, 0.0)
+  point.geometry.rotation.x = 0.0
 }
 
 func SuperPointUpdate (point SuperPoint) (point SuperPoint) {

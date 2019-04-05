@@ -170,14 +170,15 @@ func BoxGeometryRender (bg BoxGeometry, front bool, back bool, left bool, right 
 	if right {
 		gl.BindTexture(gl.TEXTURE_2D, bg.materials[2].texture)
 		gl.Begin(gl.TRIANGLE_STRIP);
-		gl.TexCoord2d(1.0D, 1.0D);
-		gl.Vertex3f( x2, y2, z1 );
-		gl.TexCoord2d(1.0D, 0.0D);
-		gl.Vertex3f( x2, y1, z1 );
-		gl.TexCoord2d(0.0D, 1.0D);
-		gl.Vertex3f( x2, y2, z2 );
 		gl.TexCoord2d(0.0D, 0.0D);
+		gl.Vertex3f( x2, y1, z1 );
+		gl.TexCoord2d(1.0D, 0.0D);
 		gl.Vertex3f( x2, y1, z2 );
+		gl.TexCoord2d(0.0D, 1.0D);
+		gl.Vertex3f( x2, y2, z1 );
+		gl.TexCoord2d(1.0D, 1.0D);
+		gl.Vertex3f( x2, y2, z2 );
+
 		gl.End();
 	}
 

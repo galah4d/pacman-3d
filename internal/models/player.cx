@@ -62,18 +62,17 @@ func NewPlayer (line i32, collumn i32, lives i32) (pl Player) {
   pl.geometry.rotation.x = -90.0
 }
 
-func InitPlayer() {
-  loadPlayerTextures()
+func InitPlayer(player_skin i32) {
+  loadPlayerTextures(player_skin)
   g_player = NewPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN, 3)
 }
 
-func loadPlayerTextures () {
-  player_textures[0] = gl.NewTexture("assets/textures/player/pacman.png")
-  player_textures[1] = gl.NewTexture("assets/textures/player/pacman2.png")
+func loadPlayerTextures(player_skin i32) {
+  player_textures[0] = gl.NewTexture(sprintf("assets/textures/player/player-%d/frame-0.png", player_skin))
+  player_textures[1] = gl.NewTexture(sprintf("assets/textures/player/player-%d/frame-1.png", player_skin))
 }
 
 func PlayerUpdate (player Player, time f64) (player Player) {
-  // Animates the player material
   if PLAYER_TIMER <= f64.sub(time, player.last_update) {
     if player.current_material == 0 {
       player.geometry.material = player.materials[1]
