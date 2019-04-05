@@ -1,6 +1,6 @@
 # PACMAN CX 3D - Version 1.0
 
-![pacman cx 3d](https://github.com/galah4d/pacman-cx/blob/master/assets/screenshots/screenshot1.png)
+![pacman cx 3d](https://github.com/galah4d/pacman-3d/blob/master/assets/screenshots/screenshot1.png)
 
 PacMan CX 3D is a simple 3D game powered by the CX programming language.
 This game is being developed with the following objectives:
@@ -46,7 +46,7 @@ Use the arrows to move the player.
 Press (2 or 3) to toggle between 2D and 3D during the game.
 
 # Screenshots
-![screenshot 1](https://github.com/galah4d/pacman-cx/blob/master/assets/screenshots/screenshot1.png)
-![screenshot 2](https://github.com/galah4d/pacman-cx/blob/master/assets/screenshots/screenshot2.png)
-![screenshot 3](https://github.com/galah4d/pacman-cx/blob/master/assets/screenshots/screenshot3.png)
-![screenshot 4](https://github.com/galah4d/pacman-cx/blob/master/assets/screenshots/screenshot4.png)
+![screenshot 1](https://github.com/galah4d/pacman-3d/blob/master/assets/screenshots/screenshot1.png)
+![screenshot 2](https://github.com/galah4d/pacman-3d/blob/master/assets/screenshots/screenshot2.png)
+![screenshot 3](https://github.com/galah4d/pacman-3d/blob/master/assets/screenshots/screenshot3.png)
+![screenshot 4](https://github.com/galah4d/pacman-3d/blob/master/assets/screenshots/screenshot4.png)
