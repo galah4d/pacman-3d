@@ -17,11 +17,11 @@ You can find more info on:
   - The official website of Skycoin - https://www.skycoin.net/
 
 # Installation
-Currently PacMan CX 3D requires [CX v0.6.0](https://github.com/skycoin/cx/releases/tag/v0.6.0) in order to run.
+Currently PacMan CX 3D requires [CX v0.6.2](https://github.com/skycoin/cx/releases/tag/v0.6.2) in order to run.
 The binaries for this version are available at:
-  - [linux-x64](https://github.com/skycoin/cx/releases/download/v0.6.0/cx-0.6.0-bin-linux-x64.zip)
-  - [mac-os-x64](https://github.com/skycoin/cx/releases/download/v0.6.0/cx-0.6.0-bin-macos-x64.zip)
-  - [windows-x64](https://github.com/skycoin/cx/releases/download/v0.6.0/cx-0.6.0-bin-windows-x64.zip)
+  - [linux-x64](https://github.com/skycoin/cx/releases/download/v0.6.2/cx-0.6.2-bin-linux-x64.zip)
+  - [mac-os-x64](https://github.com/skycoin/cx/releases/download/v0.6.2/cx-0.6.2-bin-macos-x64.zip)
+  - [windows-x64](https://github.com/skycoin/cx/releases/download/v0.6.2/cx-0.6.2-bin-windows-x64.zip)
 
 ```sh
 $ git clone https://github.com/galah4d/pacman-3d.git
