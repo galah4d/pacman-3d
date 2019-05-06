@@ -62,8 +62,19 @@ func initGame() (game Game) {
 func startGame (game Game) (game Game) {
   InitPlayer(game.settings.character_skin) // Initializes the player
   InitGhosts() // Initialize the ghosts
-  InitSimplePoints(game.settings.points_theme)
+  InitPoints(game.settings.points_theme)
   InitBoard(game.settings.board_theme)
+}
+
+func ResetGame (game Game) (game Game) {
+  game.level = 1
+  game.score = 0
+  game.game_over = false
+
+  ResetPlayer(game.settings.character_skin)
+  ResetGhosts()
+  ResetBoard(game.settings.board_theme)
+  ResetPoints(game.settings.points_theme)
 }
 
 func (game Game) leveUp (game Game, level i32) {
@@ -71,11 +82,8 @@ func (game Game) leveUp (game Game, level i32) {
   level = game.level
 }
 
-func (game Game) update () (game Game, opcode i32) {
+func (game Game) update (time f64) (game Game, opcode i32) {
   opcode = OPCODE_NULL
-
-  var time f64
-  time = glfw.GetTime()
 
   g_player = PlayerUpdate(g_player, time)
   //g_board = BoardUpdate(g_board)
@@ -83,49 +91,11 @@ func (game Game) update () (game Game, opcode i32) {
     g_ghosts[i] = GhostUpdate(g_ghosts[i], time)
   }
 
-  // Handles the ghost release
-  if game.ghosts_mode == "chase" && TimerOver(game.ghost_release_timer, time) {
-    for i=0; i<len(g_ghosts); i++ {
-      if g_ghosts[i].mode == GHOST_MODE_IN_HOUSE {
-        g_ghosts[i] = GhostRelease(g_ghosts[i])
-        break;
-      }
-    }
-    game.ghost_release_timer = TimerReset(game.ghost_release_timer, time)
-  }
-
-  // Handles the chase <-> scatter transition
-  if game.ghosts_mode == "chase" && TimerOver(game.ghost_chase_timer, time) {
-    for i=0; i<len(g_ghosts); i++ {
-      if g_ghosts[i].mode == GHOST_MODE_CHASE {
-        g_ghosts[i].mode = GHOST_MODE_SCATTER
-      }
-    }
-    game.ghosts_mode = "scatter"
-    game.ghost_scatter_timer = TimerReset(game.ghost_scatter_timer, time)
-
-  } else if game.ghosts_mode == "scatter" && TimerOver(game.ghost_scatter_timer, time) {
-    for i=0; i<len(g_ghosts); i++ {
-      if g_ghosts[i].mode == GHOST_MODE_SCATTER {
-        g_ghosts[i].mode = GHOST_MODE_CHASE
-      }
-    }
-    game.ghosts_mode = "chase"
-    game.ghost_chase_timer = TimerReset(game.ghost_chase_timer, time)
-
-  } else if game.ghosts_mode == "frightened" && TimerOver(game.ghost_frightned_timer, time) {
-    for i=0; i<len(g_ghosts); i++ {
-      g_ghosts[i] = GhostEncourage(g_ghosts[i], time)
-    }
-    game.ghosts_mode = "chase"
-    game.ghost_chase_timer = TimerReset(game.ghost_chase_timer, time)
-  }
-
   // Handles player <-> ghost collision
-  for i=0; i<len(g_ghosts); i++ {
+  for i:=0; i<len(g_ghosts); i++ {
     if phx.VectorDistance(g_ghosts[i].head_geometry.position, g_player.geometry.position) < GHOST_RADIUS {
       if g_ghosts[i].mode == GHOST_MODE_FRIGHTENED {
-        g_ghosts[i] = GhostIncarcerate(g_ghosts[i], time)
+        g_ghosts[i] = GhostIncarcerate(g_ghosts[i], glfw.GetTime())
       } else {
         game, g_player = GameKillPlayer(game, g_player)
         opcode = OPCODE_PLAYER_KILLED
@@ -133,8 +103,48 @@ func (game Game) update () (game Game, opcode i32) {
     }
   }
 
+  // Handles the ghost release
+  if game.ghosts_mode == "chase" && TimerOver(game.ghost_release_timer, glfw.GetTime()) {
+    for i:=0; i<len(g_ghosts); i++ {
+      if g_ghosts[i].mode == GHOST_MODE_IN_HOUSE {
+        g_ghosts[i] = GhostRelease(g_ghosts[i])
+        break;
+      }
+    }
+    game.ghost_release_timer = TimerReset(game.ghost_release_timer, glfw.GetTime())
+
+  // Handles the chase <-> scatter transition
+  } else if game.ghosts_mode == "chase" && TimerOver(game.ghost_chase_timer, glfw.GetTime()) {
+    for i:=0; i<len(g_ghosts); i++ {
+      if g_ghosts[i].mode == GHOST_MODE_CHASE {
+        g_ghosts[i].mode = GHOST_MODE_SCATTER
+      }
+    }
+    game.ghosts_mode = "scatter"
+    game.ghost_scatter_timer = TimerReset(game.ghost_scatter_timer, glfw.GetTime())
+
+  } else if game.ghosts_mode == "scatter" && TimerOver(game.ghost_scatter_timer, glfw.GetTime()) {
+    for i:=0; i<len(g_ghosts); i++ {
+      if g_ghosts[i].mode == GHOST_MODE_SCATTER {
+        g_ghosts[i].mode = GHOST_MODE_CHASE
+      }
+    }
+    game.ghosts_mode = "chase"
+    game.ghost_chase_timer = TimerReset(game.ghost_chase_timer, glfw.GetTime())
+
+  } else if game.ghosts_mode == "frightened" && TimerOver(game.ghost_frightned_timer, glfw.GetTime()) {
+    // FIXME panic: runtime error: slice bounds out of range is thrown if for loop is used instead
+    g_ghosts[0] = GhostEncourage(g_ghosts[0], glfw.GetTime())
+    g_ghosts[1] = GhostEncourage(g_ghosts[1], glfw.GetTime())
+    g_ghosts[2] = GhostEncourage(g_ghosts[2], glfw.GetTime())
+    g_ghosts[3] = GhostEncourage(g_ghosts[3], glfw.GetTime())
+
+    game.ghosts_mode = "chase"
+    game.ghost_chase_timer = TimerReset(game.ghost_chase_timer, glfw.GetTime())
+  }
+
   // Custom updates
-  for i=0; i<240; i++ {
+  for i:=0; i<240; i++ {
     if g_simple_points[i].point.active {
       if g_player.index_x == g_simple_points[i].point.index_x && g_player.index_y == g_simple_points[i].point.index_y {
         game = GameIncrementScore(game, 10)
@@ -143,19 +153,19 @@ func (game Game) update () (game Game, opcode i32) {
     }
   }
 
-  for i=0; i<len(g_board.super_points); i++ {
-    if g_board.super_points[i].point.active {
-      if g_player.index_x == g_board.super_points[i].point.index_x && g_player.index_y == g_board.super_points[i].point.index_y {
+  for i:=0; i<len(g_super_points); i++ {
+    if g_super_points[i].point.active {
+      if g_player.index_x == g_super_points[i].point.index_x && g_player.index_y == g_super_points[i].point.index_y {
         game = GameIncrementScore(game, 100)
-        g_board.super_points[i].point.active = false
+        g_super_points[i].point.active = false
 
         for j:=0; j<len(g_ghosts); j++ {
           if g_ghosts[j].mode != GHOST_MODE_IN_HOUSE {
-            g_ghosts[j] = GhostFrighten(g_ghosts[j], time)
+            g_ghosts[j] = GhostFrighten(g_ghosts[j], glfw.GetTime())
           }
         }
         game.ghosts_mode = "frightened"
-        game.ghost_frightned_timer = TimerReset(game.ghost_frightned_timer, time)
+        game.ghost_frightned_timer = TimerReset(game.ghost_frightned_timer, glfw.GetTime())
       }
     }
   }
@@ -219,12 +229,13 @@ func (game Game) render (program i32) {
   gl.Rotatef(game.settings.rotation_x, 1.0, 0.0, 0.0 );
   gl.Rotatef(game.settings.rotation_y, 0.0, 1.0, 0.0 );
   gl.Rotatef(game.settings.rotation_z, 0.0, 0.0, 1.0 );
-
   gl.UseProgram(program)
 
   BoardRender(g_board, game.mode)
   PlayerRender(g_player)
-  for i:=0; i<4; i++ {
+
+  var i i32
+  for i=0; i<4; i++ {
     GhostRender(g_ghosts[i])
   }
   for i=0; i<240; i++ {
@@ -257,10 +268,15 @@ func GameRender(game Game, program i32) {
 
   BoardRender(g_board, game.mode)
   PlayerRender(g_player)
-  for i:=0; i<4; i++ {
+
+  var i i32
+  for i=0; i<4; i++ {
     GhostRender(g_ghosts[i])
   }
   for i=0; i<240; i++ {
     SimplePointRender(g_simple_points[i], game.mode)
+  }
+  for i:=0; i<len(g_super_points); i++ {
+    SuperPointRender(g_super_points[i])
   }
 }

@@ -71,7 +71,7 @@ func GameSceneUpdate(scene Scene, game Game) (current_screen i32) {
   }
 
   var opcode i32
-  game, opcode = game.update()
+  game, opcode = game.update(glfw.GetTime())
   if opcode == 1 {
     scene.front_screen.layers[0] = NewLivesLayer2(
       i32.div(scene.front_screen.dimensions.width, 2),

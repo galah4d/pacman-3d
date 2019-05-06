@@ -14,6 +14,8 @@ var CODE_GATE i32 = 5
 
 var g_board Board
 
+var g_cells [31][28]Cell
+
 type Board struct {
   id str
   cells [31][28]Cell
@@ -27,36 +29,44 @@ func newBoard() (board Board) {
   var line [28]i32
   for i:=0; i<31; i++ {
     line = loadBoardLine(i)
+    var cells_aux []Cell
     for j:=0; j<28; j++ {
-
       if line[j] == CODE_WALL {
-        board.cells[i][j] = NewCell(i, j, CELL_TYPE_WALL)
+        g_cells[i][j] = NewCell(i, j, CELL_TYPE_WALL)
 
       } else if line[j] == CODE_PATH {
-        board.cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
+        g_cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
 
       } else if line[j] == CODE_SIMPLE_POINT {
         board.simple_points = append(board.simple_points, newSimplePoint(i, j))
-        board.cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
+        g_cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
 
       } else if line[j] == CODE_SUPER_POINT {
         board.super_points = append(board.super_points, newSuperPoint(i, j))
-        board.cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
+        g_cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
 
       } else if line[j] == CODE_GATE {
-        board.cells[i][j] = NewCell(i, j, CELL_TYPE_GATE)
+        g_cells[i][j] = NewCell(i, j, CELL_TYPE_GATE)
 
       } else {
-        board.cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
+        g_cells[i][j] = NewCell(i, j, CELL_TYPE_PATH)
       }
     }
   }
 }
 
 func InitBoard(board_theme i32) {
-	loadCellTextures(board_theme)
+	loadCellTextures()
 
   g_board = newBoard()
+}
+
+func ResetBoard(board_theme i32) {
+  for i:=0; i<31; i++ {
+    for j:=0; j<28; j++ {
+      g_cells[i][j] = SetCellTheme(g_cells[i][j], board_theme)
+    }
+  }
 }
 
 func BoardUpdate(board Board) (board Board) {
@@ -71,12 +81,8 @@ func BoardRender(board Board, game_mode str) {
 	time = glfw.GetTime()
   for i:=0; i<BOARD_LINES; i++ {
     for j:=0; j<BOARD_COLLUMNS; j++ {
-			CellRender(board.cells[i][j], game_mode)
+			CellRender(g_cells[i][j], game_mode)
     }
-  }
-
-  for i=0; i<len(board.super_points); i++ {
-    SuperPointRender(board.super_points[i])
   }
 }
 

@@ -18,30 +18,14 @@ var cell_textures [3]i32
 var THEMES_COUNT i32 = 3
 var CELL_TEXTURES []i32
 
-func loadCellTextures (board_theme i32) {
-  // Wall textures
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
-
-  // Path textures
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
-
-  // Gate textures
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
-
-  // teleport textures
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", board_theme)))
-  CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", board_theme)))
+func loadCellTextures () {
+  for i:=0; i<3; i++ {
+    // Wall textures
+    CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", i)))
+    CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", i)))
+    CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-top.png", i)))
+    CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-bottom.png", i)))
+  }
 }
 
 type Cell struct {
@@ -56,20 +40,20 @@ func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
   var mat graphical.Material
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(CELL_TEXTURES[ct*4])
+  mat = mat.setTexture(CELL_TEXTURES[0])
   for i:=0; i<2; i++ {
     materials[i] = mat
   }
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(CELL_TEXTURES[ct*4 + 1])
-  for i=2; i<4; i++ {
+  mat = mat.setTexture(CELL_TEXTURES[1])
+  for i:=2; i<4; i++ {
     materials[i] = mat
   }
 
   mat = graphical.newMaterial(1.0, 1.0, 0.0)
-  mat = mat.setTexture(CELL_TEXTURES[ct*4 + 2])
-  for i=4; i<6; i++ {
+  mat = mat.setTexture(CELL_TEXTURES[2])
+  for i:=4; i<6; i++ {
     materials[i] = mat
   }
 
@@ -81,6 +65,15 @@ func NewCell (line i32, collumn i32, ct i32) (cell Cell) {
   cell.geometry.rotation.x = -90.0
 
   return cell
+}
+
+func SetCellTheme(cell Cell, theme i32) (cell Cell) {
+  cell.geometry.materials[0] = cell.geometry.materials[0].setTexture(CELL_TEXTURES[4*theme])
+  cell.geometry.materials[1] = cell.geometry.materials[1].setTexture(CELL_TEXTURES[4*theme])
+  cell.geometry.materials[2] = cell.geometry.materials[2].setTexture(CELL_TEXTURES[4*theme+1])
+  cell.geometry.materials[3] = cell.geometry.materials[3].setTexture(CELL_TEXTURES[4*theme+1])
+  cell.geometry.materials[4] = cell.geometry.materials[4].setTexture(CELL_TEXTURES[4*theme+2])
+  cell.geometry.materials[5] = cell.geometry.materials[5].setTexture(CELL_TEXTURES[4*theme+2])
 }
 
 func CellRender(cell Cell, mode str) {

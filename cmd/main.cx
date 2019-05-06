@@ -121,16 +121,7 @@ func cursor_pos_callback(window str, xpos f64, ypos f64) () {
 
 /* GAME LOGIC */
 
-
-
-var game_scene Scene
-var home_scene Scene
-var pause_scene Scene
-var settings_scene Scene
-var select_board_scene Scene
-var select_player_scene Scene
-
-var scenes[6] Scene
+var scenes[7] Scene
 
 // Item Types
 var PATH_CELL i32 = 3
@@ -152,7 +143,14 @@ func main () () {
 	program = initGL()
 
 	// Initializes all the scenes
-	current_scene = NewHomeScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+	scenes[HOME_SCENE] = NewHomeScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+	scenes[GAME_SCENE] = NewGameScene(SCREEN_WIDTH, SCREEN_HEIGHT, game)
+	scenes[SETTINGS_SCENE] = NewSettingsScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+	scenes[SELECT_PLAYER_SCENE] = NewSelectPlayerScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+	scenes[SELECT_BOARD_SCENE] = NewSelectBoardScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+	scenes[SELECT_POINTS_SCENE] = NewSelectPointsScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+
+	current_scene = scenes[HOME_SCENE]
 
 	game = initGame()
 
@@ -187,21 +185,11 @@ func main () () {
 			SelectPointsSceneRender(current_scene, program)
 		}
 
-		// TODO cleanup
 		if bool.not(i32.eq(last_screen, current_screen)) {
-			if current_screen == HOME_SCENE {
-				current_scene = NewHomeScene(SCREEN_WIDTH, SCREEN_HEIGHT)
-			} else if current_screen == GAME_SCENE {
-				current_scene = NewGameScene(SCREEN_WIDTH, SCREEN_HEIGHT, game)
-			} else if current_screen == SETTINGS_SCENE {
-				current_scene = NewSettingsScene(SCREEN_WIDTH, SCREEN_HEIGHT)
-			} else if current_screen == SELECT_PLAYER_SCENE {
-				current_scene = NewSelectPlayerScene(SCREEN_WIDTH, SCREEN_HEIGHT)
-			} else if current_screen == SELECT_BOARD_SCENE {
-				current_scene = NewSelectBoardScene(SCREEN_WIDTH, SCREEN_HEIGHT)
-			} else if current_screen == SELECT_POINTS_SCENE {
-				current_scene = NewSelectPointsScene(SCREEN_WIDTH, SCREEN_HEIGHT)
+			if current_screen == GAME_SCENE {
+				game = ResetGame(game)
 			}
+			current_scene = scenes[current_screen]
 		}
 
 		glfw.PollEvents()

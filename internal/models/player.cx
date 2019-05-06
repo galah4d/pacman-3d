@@ -14,7 +14,9 @@ var PLAYER_MOVEMENT_TIMER f64 = 0.001D
 var PLAYER_SPAWN_LINE i32 = 23
 var PLAYER_SPAWN_COLLUMN i32 = 14
 
-var player_textures[2] i32
+
+var player_textures_0[5] i32
+var player_textures_1[5] i32
 
 var g_player Player
 
@@ -39,9 +41,9 @@ type Player struct {
 func NewPlayer (line i32, collumn i32, lives i32) (pl Player) {
   var materials [2]graphical.Material
   materials[0] = graphical.newMaterial(1.0, 1.0, 0.0)
-  materials[0] = materials[0].setTexture(player_textures[0])
+  materials[0] = materials[0].setTexture(player_textures_0[0])
   materials[1] = graphical.newMaterial(1.0, 1.0, 0.0)
-  materials[1] = materials[1].setTexture(player_textures[1])
+  materials[1] = materials[1].setTexture(player_textures_1[0])
 
   pl.index_x = collumn
   pl.index_y = line
@@ -63,13 +65,21 @@ func NewPlayer (line i32, collumn i32, lives i32) (pl Player) {
 }
 
 func InitPlayer(player_skin i32) {
-  loadPlayerTextures(player_skin)
+  loadPlayerTextures()
   g_player = NewPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN, 3)
 }
 
-func loadPlayerTextures(player_skin i32) {
-  player_textures[0] = gl.NewTexture(sprintf("assets/textures/player/player-%d/frame-0.png", player_skin))
-  player_textures[1] = gl.NewTexture(sprintf("assets/textures/player/player-%d/frame-1.png", player_skin))
+func ResetPlayer(player_skin i32)  {
+  g_player = NewPlayer(PLAYER_SPAWN_LINE, PLAYER_SPAWN_COLLUMN, 3)
+  g_player.materials[0] = g_player.materials[0].setTexture(player_textures_0[player_skin])
+  g_player.materials[1] = g_player.materials[1].setTexture(player_textures_1[player_skin])
+}
+
+func loadPlayerTextures() {
+  for i:=0; i<5; i++ {
+    player_textures_0[i] = gl.NewTexture(sprintf("assets/textures/player/player-%d/frame-0.png", i))
+    player_textures_1[i] = gl.NewTexture(sprintf("assets/textures/player/player-%d/frame-1.png", i))
+  }
 }
 
 func PlayerUpdate (player Player, time f64) (player Player) {
@@ -104,7 +114,7 @@ func PlayerMove(player Player) (player Player) {
   new_line := i32.add(player.index_y, f32.i32(player.direction.vector.y))
   new_collumn := i32.add(player.index_x, f32.i32(player.direction.vector.x))
 
-  if phx.VectorDistance(player.geometry.position, g_board.cells[new_line][new_collumn].geometry.position) < 0.005 {
+  if phx.VectorDistance(player.geometry.position, g_cells[new_line][new_collumn].geometry.position) < 0.005 {
     player.index_y = new_line
     player.index_x = new_collumn
 
@@ -132,7 +142,7 @@ func PlayerCanMove(player Player, direction phx.Direction) (out bool) {
   new_line := i32.add(player.index_y, f32.i32(direction.vector.y))
   new_collumn := i32.add(player.index_x, f32.i32(direction.vector.x))
 
-  out = i32.eq(g_board.cells[new_line][new_collumn].ctype, CELL_TYPE_PATH)
+  out = i32.eq(g_cells[new_line][new_collumn].ctype, CELL_TYPE_PATH)
 }
 
 func PlayerKill(player Player) (player Player, gameOver bool) {

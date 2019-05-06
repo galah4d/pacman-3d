@@ -109,6 +109,12 @@ func InitGhosts() {
   SCATTER_TARGET[GHOST_TYPE_POKEY] = phx.NewVector(-0.895, -0.835, 0.0)
 }
 
+func ResetGhosts()  {
+  for i:=0; i<4; i++ {
+    g_ghosts[i] = NewGhost(GHOST_SPAWN_LINE, GHOST_SPAWN_COLLUMN, i)
+  }
+}
+
 // Loads the ghosts textures
 func loadGhostTextures () {
   GHOST_TEXTURES[GHOST_TYPE_SHADOW] = gl.NewTexture("assets/textures/ghosts/ghost1.png")
@@ -172,11 +178,10 @@ func GhostFrighten(ghost Ghost, time f64) (ghost Ghost) {
 }
 
 func GhostEncourage(ghost Ghost, time f64) (ghost Ghost) {
-  if ghost.mode != GHOST_MODE_FRIGHTENED {
-    return ghost;
+  if ghost.mode == GHOST_MODE_FRIGHTENED {
+    ghost.mode = GHOST_MODE_CHASE
+    ghost.head_geometry.material.texture = GHOST_TEXTURES[ghost.gtype]
   }
-  ghost.mode = GHOST_MODE_CHASE
-  ghost.head_geometry.material.texture = GHOST_TEXTURES[ghost.gtype]
 }
 
 func GhostMove(ghost Ghost, player_collumn i32, player_line i32) (ghost Ghost) {
@@ -185,8 +190,7 @@ func GhostMove(ghost Ghost, player_collumn i32, player_line i32) (ghost Ghost) {
 
   ghost.head_geometry.position = phx.VectorAdd(ghost.head_geometry.position, phx.VectorMulScalar(ghost.direction.vector, ghost.velocity))
 
-  if phx.VectorDistance(ghost.head_geometry.position, g_board.cells[new_line][new_collumn].geometry.position) < 0.005 {
-    //printf("Ghost %d index update - Mode %d\n", ghost.gtype, ghost.mode)
+  if phx.VectorDistance(ghost.head_geometry.position, g_cells[new_line][new_collumn].geometry.position) < 0.005 {
     ghost.index_y = new_line
     ghost.index_x = new_collumn
 
@@ -217,8 +221,9 @@ func calculateGhostDirection(ghost Ghost, target_line i32, target_collumn i32) (
   var cost f32
   var valid bool
 
+  var i i32
   if ghost.mode == GHOST_MODE_CHASE {
-    for i:=0; i<len(directions); i++ {
+    for i=0; i<len(directions); i++ {
       cost, valid = calculateDirectionCost(ghost, directions[i], g_player.geometry.position)
       if valid && cost < min_cost {
         min_cost = cost
@@ -265,6 +270,6 @@ func GhostCanMove(ghost Ghost, direction phx.Direction) (out bool) {
   new_collumn := i32.add(ghost.index_x, f32.i32(direction.vector.x))
 
   out = bool.and(
-    i32.eq(g_board.cells[new_line][new_collumn].ctype, CELL_TYPE_PATH),
+    i32.eq(g_cells[new_line][new_collumn].ctype, CELL_TYPE_PATH),
     bool.not(phx.DirectionEq(phx.DirectionOpposite(ghost.direction), direction)))
 }

@@ -51,15 +51,15 @@ func scale(value i32, max i32) (scaled f32) {
 }
 
 func relative2absoluteX(relative_position f32, max_px i32) (absolute_position i32) {
-  absolute_position = f32.i32(f32.div(i32.f32(max_px), 2.0) + f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0)))
+  absolute_position = f32.i32(f32.add(f32.div(i32.f32(max_px), 2.0), f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0))))
 }
 
 func relative2absoluteY(relative_position f32, max_px i32) (absolute_position i32) {
-  absolute_position = f32.i32(f32.div(i32.f32(max_px), 2.0) - f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0)))
+  absolute_position = f32.i32(f32.sub(f32.div(i32.f32(max_px), 2.0), f32.mul(relative_position, f32.div(i32.f32(max_px), 2.0))))
 }
 
 func cursorInsideArea(mouse_x i32, mouse_y i32, area_position position_pkg.Position, area_dimensions dimensions_pkg.Dimensions) (inside bool) {
-  var inside bool = false
+  inside = false
   if i32.gteq(mouse_x, i32.sub(relative2absoluteX(area_position.x, constants_pkg.SCREEN_WIDTH), i32.div(area_dimensions.width, 2))) {
     if i32.lteq(mouse_x, i32.add(relative2absoluteX(area_position.x, constants_pkg.SCREEN_WIDTH), i32.div(area_dimensions.width, 2))) {
       if i32.gteq(mouse_y, i32.sub(relative2absoluteY(area_position.y, constants_pkg.SCREEN_HEIGHT), i32.div(area_dimensions.height, 2))) {
@@ -505,10 +505,10 @@ func clickLayer(layer Layer) (layer Layer) {
         layer.callback_id = layer.buttons[i].id
       }
     }
-    for i=0; i<len(layer.spinboxes); i++ {
+    for i:=0; i<len(layer.spinboxes); i++ {
       layer.spinboxes[i] = spinbox_pkg.clickSpinbox(layer.spinboxes[i])
     }
-    for i=0; i<len(layer.radioboxes); i++ {
+    for i:=0; i<len(layer.radioboxes); i++ {
       layer.radioboxes[i] = radiobox_pkg.clickRadiobox(layer.radioboxes[i])
     }
   }
@@ -655,7 +655,7 @@ func (screen Screen) update(mouse_x i32, mouse_y i32) (screen Screen) {
     screen.layers[i] = layer_pkg.updateLayer(mouse_x, mouse_y, screen.layers[i])
   }
 
-  for i=0; i<len(screen.sliders); i++ {
+  for i:=0; i<len(screen.sliders); i++ {
     screen.sliders[i] = slider_pkg.UpdateSlider(screen.sliders[i], mouse_x, mouse_y)
   }
 }
@@ -665,7 +665,7 @@ func ScreenUpdate(screen Screen, mouse_x i32, mouse_y i32) (screen Screen) {
     screen.layers[i] = layer_pkg.updateLayer(mouse_x, mouse_y, screen.layers[i])
   }
 
-  for i=0; i<len(screen.sliders); i++ {
+  for i:=0; i<len(screen.sliders); i++ {
     screen.sliders[i] = slider_pkg.UpdateSlider(screen.sliders[i], mouse_x, mouse_y)
   }
 }
@@ -675,7 +675,7 @@ func clickScreen(screen Screen) (screen Screen) {
     screen.layers[i] = layer_pkg.clickLayer(screen.layers[i])
   }
 
-  for i=0; i<len(screen.sliders); i++ {
+  for i:=0; i<len(screen.sliders); i++ {
     screen.sliders[i] = slider_pkg.ClickSlider(screen.sliders[i])
   }
 }
@@ -685,7 +685,7 @@ func ScreenClick(screen Screen) (screen Screen) {
     screen.layers[i] = layer_pkg.clickLayer(screen.layers[i])
   }
 
-  for i=0; i<len(screen.sliders); i++ {
+  for i:=0; i<len(screen.sliders); i++ {
     screen.sliders[i] = slider_pkg.ClickSlider(screen.sliders[i])
   }
 }
@@ -738,7 +738,7 @@ func RenderScreen(screen Screen) {
     layer_pkg.renderLayer(screen.layers[i])
   }
 
-  for i=0; i<len(screen.sliders); i++ {
+  for i:=0; i<len(screen.sliders); i++ {
     slider_pkg.RenderSlider(screen.sliders[i])
   }
 

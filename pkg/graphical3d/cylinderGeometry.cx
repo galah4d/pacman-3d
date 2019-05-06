@@ -45,7 +45,9 @@ func (cg CylinderGeometry) render () {
 
   gl.BindTexture(gl.TEXTURE_2D, cg.materials[1].texture)
   gl.Begin(gl.TRIANGLE_STRIP);
-  for i:=0; i<=cg.segments; i++ {
+
+	var i i32;
+  for i=0; i<=cg.segments; i++ {
     theta = i32.f32(i)*cg.theta_length
     px = cg.radius*f32.cos(theta)
     py = cg.radius*f32.sin(theta)
@@ -118,7 +120,9 @@ func CylinderGeometryRender (cg CylinderGeometry) {
 
   gl.BindTexture(gl.TEXTURE_2D, cg.materials[1].texture)
   gl.Begin(gl.TRIANGLE_STRIP);
-  for i:=0; i<=cg.segments; i++ {
+
+	var i i32;
+  for i=0; i<=cg.segments; i++ {
     theta = i32.f32(i)*cg.theta_length
     px = cg.radius*f32.cos(theta)
     py = cg.radius*f32.sin(theta)
