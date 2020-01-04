@@ -11,15 +11,15 @@ import "graphical"
 var PATH_CELL_WITH_SIMPLE_POINT i32 = 0
 var PATH_CELL_WITH_SUPER_POINT i32 = 2
 
-var simple_point_textures  [4]i32
-var super_point_textures_0 [4]i32
-var super_point_textures_1 [4]i32
+var simple_point_textures  [5]i32
+var super_point_textures_0 [5]i32
+var super_point_textures_1 [5]i32
 
 var g_simple_points [240]SimplePoint
 var g_super_points [4]SuperPoint
 
 func loadPointTetures () {
-  for i:=0; i<4; i++ {
+  for i:=0; i<5; i++ {
     simple_point_textures[i] = gl.NewTexture(sprintf("assets/textures/points/points-%d/simple-point.png", i))
     super_point_textures_0[i] = gl.NewTexture(sprintf("assets/textures/points/points-%d/super-point.png", i))
     super_point_textures_1[i] = gl.NewTexture(sprintf("assets/textures/points/points-%d/super-point-side.png", i))

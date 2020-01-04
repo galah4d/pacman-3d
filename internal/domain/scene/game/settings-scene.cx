@@ -13,10 +13,10 @@ import "graphical"
 var CHARACTER_COUNT i32 = 5
 var characters []graphical.SphereGeometry
 
-var BOARDS_COUNT i32 = 3
+var BOARDS_COUNT i32 = 5
 var boards []graphical.BoxGeometry
 
-var POINTS_COUNT i32 = 4
+var POINTS_COUNT i32 = 5
 var points []graphical.CylinderGeometry
 
 func NewSettingsScene(screen_width i32, screen_height i32) (scene Scene) {

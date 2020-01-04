@@ -11,15 +11,11 @@ var CELL_WIDTH f32 = 0.07
 var CELL_HEIGHT f32 = 0.07
 var CELL_DEPTH f32 = 0.07
 
-var wall_cell_textures [3]i32
-var gate_cell_textures [3]i32
-var cell_textures [3]i32
-
-var THEMES_COUNT i32 = 3
+var THEMES_COUNT i32 = 5
 var CELL_TEXTURES []i32
 
 func loadCellTextures () {
-  for i:=0; i<3; i++ {
+  for i:=0; i<THEMES_COUNT; i++ {
     // Wall textures
     CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-1.png", i)))
     CELL_TEXTURES = append(CELL_TEXTURES, gl.NewTexture(sprintf("assets/textures/board/walls/wall-%d/wall-side-2.png", i)))
